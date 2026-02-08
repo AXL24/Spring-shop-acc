@@ -1,0 +1,98 @@
+
+USE mydatabase;
+
+
+-- 1. BẢNG USERS
+CREATE TABLE users (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    phone_number VARCHAR(15),
+    role ENUM('CUSTOMER', 'ADMIN') DEFAULT 'CUSTOMER', -- CUSTOMER, ADMIN
+    active BOOLEAN DEFAULT TRUE,
+    created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ;
+
+-- 2. BẢNG REFRESH_TOKENS
+CREATE TABLE tokens (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    user_id BIGINT NOT NULL,
+    token VARCHAR(500) UNIQUE NOT NULL,
+    expire TIMESTAMP NOT NULL,
+    revoked BOOLEAN DEFAULT FALSE,
+    created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ;
+
+-- 3. BẢNG CATEGORIES
+CREATE TABLE categories (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    created TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    
+) ;
+
+-- 4. BẢNG PRODUCTS
+CREATE TABLE products (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    category_id BIGINT NOT NULL,
+    name VARCHAR(200) NOT NULL,
+    description TEXT,
+    platform VARCHAR(50), -- Netflix, Steam, Spotify, etc.
+    price DECIMAL(10,2) NOT NULL,
+    stock INT DEFAULT 0,
+    active BOOLEAN DEFAULT TRUE,
+    created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (category_id) REFERENCES categories(id)
+  
+) ;
+
+-- 5. BẢNG ACCOUNTS (inventory)
+CREATE TABLE accounts (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    product_id BIGINT NOT NULL,
+    username VARCHAR(500) NOT NULL, -- Encrypted
+    password VARCHAR(500) NOT NULL, -- Encrypted
+    status ENUM('AVAILABLE', 'SOLD', 'CONTACT') DEFAULT 'CONTACT', -- AVAILABLE, SOLD, INVALID
+    sold TIMESTAMP NULL,
+    created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (product_id) REFERENCES products(id)
+) ;
+
+-- 6. BẢNG ORDERS
+CREATE TABLE orders (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    order_code VARCHAR(20) UNIQUE NOT NULL, -- ORD20250205001
+    user_id BIGINT NOT NULL,
+    total_amount DECIMAL(10,2) NOT NULL,
+    status ENUM('PENDING', 'COMPLETED', 'CANCELLED') DEFAULT 'PENDING', -- PENDING, COMPLETED, CANCELLED
+    customer_note TEXT,
+    created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (user_id) REFERENCES users(id)
+
+) ;
+
+-- 7. BẢNG ORDER_ITEMS
+CREATE TABLE order_items (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    order_id BIGINT NOT NULL,
+    product_id BIGINT NOT NULL,
+    account_id BIGINT NULL, -- Gán khi giao hàng
+    quantity INT DEFAULT 1,
+    unit_price DECIMAL(10,2) NOT NULL, -- Giá 1 sản phẩm
+    total_price DECIMAL(10,2) NOT NULL, -- = unit_price * quantity
+    delivered TIMESTAMP NULL,
+    
+    FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+    FOREIGN KEY (product_id) REFERENCES products(id),
+    FOREIGN KEY (account_id) REFERENCES accounts(id)
+) 
