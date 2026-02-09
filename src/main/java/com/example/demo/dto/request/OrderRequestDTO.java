@@ -1,5 +1,6 @@
 package com.example.demo.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -20,12 +21,15 @@ import java.util.List;
 public class OrderRequestDTO {
     
     @NotNull(message = "User ID is mandatory")
+    @JsonProperty(value = "user_id")
     private Long userId;
     
     @NotEmpty(message = "Order must contain at least one item")
     @Valid
+    @JsonProperty(value = "order_items")
     private List<OrderItemRequestDTO> orderItems;
     
     @Size(max = 1000, message = "Customer note must not exceed 1000 characters")
+    @JsonProperty(value = "customer_note")
     private String customerNote;
 }

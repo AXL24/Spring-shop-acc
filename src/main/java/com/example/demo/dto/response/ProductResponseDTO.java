@@ -1,5 +1,6 @@
 package com.example.demo.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,7 +22,9 @@ public class ProductResponseDTO {
     private Long id;
     private String name;
     private BigDecimal price;
+    @JsonProperty(value = "category_id")
     private Long categoryId;
+    @JsonProperty(value = "category_name")
     private String categoryName;
     private String description;
     private String platform;

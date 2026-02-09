@@ -20,7 +20,7 @@ public class Order {
     @Column(name = "id", nullable = false)
     private Long id;
 
-    @Column(name = "order_code", nullable = false, length = 20)
+    @Column(name = "order_code", nullable = false, length = 30)
     private String orderCode;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -31,7 +31,7 @@ public class Order {
     @Min(value = 0, message = "Total amount must be non-negative")
     private BigDecimal totalAmount;
 
-    @ColumnDefault("'PENDING'")
+    //@ColumnDefault("'PENDING'") //pending = reserved
     @Lob
     @Column(name = "status")
     private String status;

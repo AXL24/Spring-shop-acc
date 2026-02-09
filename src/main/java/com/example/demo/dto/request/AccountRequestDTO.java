@@ -1,5 +1,6 @@
 package com.example.demo.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -18,6 +19,7 @@ import lombok.NoArgsConstructor;
 public class AccountRequestDTO {
     
     @NotNull(message = "Product ID is mandatory")
+    @JsonProperty(value = "product_id")
     private Long productId;
     
     @NotBlank(message = "Username is mandatory")

@@ -1,5 +1,6 @@
 package com.example.demo.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,6 +21,7 @@ public class UserResponseDTO {
     private Long id;
     private String username;
     private String email;
+    @JsonProperty(value = "phone_number")
     private String phoneNumber;
     private String role;
     private Boolean active;

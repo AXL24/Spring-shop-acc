@@ -1,5 +1,6 @@
 package com.example.demo.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -30,8 +31,9 @@ public class UserRequestDTO {
     
     @Size(max = 15, message = "Phone number must not exceed 15 characters")
     @Pattern(regexp = "^[0-9+\\-\\s()]*$", message = "Phone number can only contain digits, +, -, spaces, and parentheses")
+    @JsonProperty(value = "phone_number")
     private String phoneNumber;
     
-    @Pattern(regexp = "CUSTOMER|ADMIN|SELLER", message = "Role must be CUSTOMER, ADMIN, or SELLER")
+    @Pattern(regexp = "CUSTOMER|ADMIN", message = "Role must be CUSTOMER, ADMIN")
     private String role;
 }

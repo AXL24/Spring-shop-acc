@@ -46,6 +46,7 @@ public class OrderServiceImpl implements OrderService {
     @Autowired
     private ProductRepository productRepository;
 
+    //TODO IMPLEMENT RESERVATION LOGIC FOR PENDING ORDERS
     @Override
     @Transactional
     public OrderResponseDTO createOrder(OrderRequestDTO dto) {
@@ -57,7 +58,7 @@ public class OrderServiceImpl implements OrderService {
         Order order = new Order();
         order.setOrderCode(generateOrderCode());
         order.setUser(user);
-        order.setStatus("PENDING");
+        //order.setStatus("PENDING"); <- IN CART
         order.setCustomerNote(dto.getCustomerNote());
         order.setCreated(Instant.now());
         order.setUpdated(Instant.now());
@@ -149,8 +150,8 @@ public class OrderServiceImpl implements OrderService {
      */
     private String generateOrderCode() {
         String timestamp = String.valueOf(System.currentTimeMillis());
-        String random = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
-        return "ORD-" + timestamp + "-" + random;
+        String random = UUID.randomUUID().toString().substring(0, 4).toUpperCase();
+        return timestamp + "-" + random;
     }
 
     /**
