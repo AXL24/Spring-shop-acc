@@ -8,21 +8,17 @@ import lombok.NoArgsConstructor;
 import java.time.Instant;
 
 /**
- * Response DTO for User entity.
- * Excludes sensitive information like passwordHash.
+ * Response DTO for Category entity.
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserResponseDTO {
+public class CategoryResponseDTO {
     
     private Long id;
-    private String username;
-    private String email;
-    private String phoneNumber;
-    private String role;
-    private Boolean active;
+    private String name;
+    private String description;
+    private String imageUrl;
     private Instant created;
-    private Instant updated;
 }

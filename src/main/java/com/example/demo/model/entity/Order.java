@@ -1,6 +1,7 @@
 package com.example.demo.model.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Min;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
@@ -27,6 +28,7 @@ public class Order {
     private User user;
 
     @Column(name = "total_amount", nullable = false, precision = 10, scale = 2)
+    @Min(value = 0, message = "Total amount must be non-negative")
     private BigDecimal totalAmount;
 
     @ColumnDefault("'PENDING'")

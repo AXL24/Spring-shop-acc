@@ -1,4 +1,11 @@
+app:
+  upload:
+    categories-dir: uploads/categories
+    base-url: http://localhost:8080
+
+
 spring:
+
   docker:
     compose:
       enabled: false

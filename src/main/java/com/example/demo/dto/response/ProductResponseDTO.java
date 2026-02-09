@@ -5,23 +5,27 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 
 /**
- * Response DTO for User entity.
- * Excludes sensitive information like passwordHash.
+ * Response DTO for Product entity.
+ * Includes category information for convenience.
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserResponseDTO {
+public class ProductResponseDTO {
     
     private Long id;
-    private String username;
-    private String email;
-    private String phoneNumber;
-    private String role;
+    private String name;
+    private BigDecimal price;
+    private Long categoryId;
+    private String categoryName;
+    private String description;
+    private String platform;
+    private Integer stock;
     private Boolean active;
     private Instant created;
     private Instant updated;
