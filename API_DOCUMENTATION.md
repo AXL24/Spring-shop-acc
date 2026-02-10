@@ -158,9 +158,17 @@ Permanently removes user from database.
 
 ### Create Category
 
-**POST** `/api/v1/category`
+**POST** `/api/v1/category/add`
 
-**Request Body**:
+**Content-Type**: `multipart/form-data`
+
+Create a new category with optional image upload.
+
+**Request Parameters**:
+- `category` (required, JSON part): Category data
+- `image` (optional, file part): Category image file
+
+**Category JSON Structure**:
 ```json
 {
   "name": "Gaming Accounts",
@@ -171,6 +179,14 @@ Permanently removes user from database.
 **Validation Rules**:
 - `name`: Required, 2-100 characters
 - `description`: Optional, max 500 characters
+- `image`: Optional, supported image formats (JPEG, PNG, etc.)
+
+**Example using cURL**:
+```bash
+curl -X POST http://localhost:8080/api/v1/category/add \
+  -F 'category={"name":"Gaming Accounts","description":"Virtual gaming accounts and credentials"};type=application/json' \
+  -F 'image=@/path/to/image.jpg'
+```
 
 **Response** (201 Created):
 ```json
@@ -178,6 +194,7 @@ Permanently removes user from database.
   "id": 1,
   "name": "Gaming Accounts",
   "description": "Virtual gaming accounts and credentials",
+  "image_url": "http://localhost:8080/uploads/categories/uuid-image.jpg",
   "created": "2026-02-06T14:30:00Z"
 }
 ```
@@ -186,17 +203,72 @@ Permanently removes user from database.
 
 **GET** `/api/v1/category/{id}`
 
+**Response** (200 OK):
+```json
+{
+  "id": 1,
+  "name": "Gaming Accounts",
+  "description": "Virtual gaming accounts and credentials",
+  "image_url": "http://localhost:8080/uploads/categories/uuid-image.jpg",
+  "created": "2026-02-06T14:30:00Z"
+}
+```
+
 ### Get All Categories
 
 **GET** `/api/v1/category/getAll?page=0&size=10`
+
+**Query Parameters**:
+- `page`: Page number (default: 0)
+- `size`: Page size (default: 10)
+
+**Response** (200 OK):
+```json
+{
+  "content": [
+    {
+      "id": 1,
+      "name": "Gaming Accounts",
+      "description": "Virtual gaming accounts and credentials",
+      "image_url": "http://localhost:8080/uploads/categories/uuid-image.jpg",
+      "created": "2026-02-06T14:30:00Z"
+    }
+  ],
+  "totalElements": 10,
+  "totalPages": 1,
+  "size": 10,
+  "number": 0
+}
+```
 
 ### Update Category
 
 **PUT** `/api/v1/category/{id}`
 
+**Content-Type**: `multipart/form-data`
+
+Update a category with optional image replacement. If a new image is provided, the old image will be automatically deleted.
+
+**Request Parameters**:
+- `category` (required, JSON part): Updated category data
+- `image` (optional, file part): New category image file
+
+**Example using cURL**:
+```bash
+curl -X PUT http://localhost:8080/api/v1/category/1 \
+  -F 'category={"name":"Updated Gaming Accounts","description":"Updated description"};type=application/json' \
+  -F 'image=@/path/to/new-image.jpg'
+```
+
+**Response** (200 OK): Updated category object
+
 ### Delete Category
 
 **DELETE** `/api/v1/category/{id}`
+
+Deletes the category and its associated image file (if exists).
+
+**Response** (204 No Content)
 
 ---
 
@@ -232,8 +304,8 @@ Permanently removes user from database.
   "id": 1,
   "name": "Minecraft Premium Account",
   "price": 29.99,
-  "categoryId": 1,
-  "categoryName": "Gaming Accounts",
+  "category_id": 1,
+  "category_name": "Gaming Accounts",
   "stock": 50,
   "platform": "PC",
   "description": "Full access Minecraft Java Edition account",
@@ -517,7 +589,7 @@ When status is changed to "SOLD", the `sold` timestamp is automatically set.
 
 ### 1. Create a New Product
 
-1. Create a category: `POST /api/v1/category`
+1. Create a category: `POST /api/v1/category/add` (with optional image upload)
 2. Create a product with category ID: `POST /api/v1/product/add`
 3. Add virtual goods (accounts): `POST /api/v1/account` (multiple times)
 
