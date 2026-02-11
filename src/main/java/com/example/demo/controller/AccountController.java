@@ -2,6 +2,7 @@ package com.example.demo.controller;
 
 import com.example.demo.dto.request.AccountRequestDTO;
 import com.example.demo.dto.response.AccountResponseDTO;
+import com.example.demo.model.entity.Account;
 import com.example.demo.service.AccountService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +26,9 @@ public class AccountController {
     @Autowired
     private AccountService accountService;
 
+    @Autowired
+    private org.modelmapper.ModelMapper modelMapper;
+
     /**
      * Create a new account (virtual goods).
      * 
@@ -33,8 +37,8 @@ public class AccountController {
      */
     @PostMapping
     public ResponseEntity<AccountResponseDTO> createAccount(@Valid @RequestBody AccountRequestDTO dto) {
-        AccountResponseDTO createdAccount = accountService.createAccount(dto);
-        return new ResponseEntity<>(createdAccount, HttpStatus.CREATED);
+        AccountResponseDTO response = accountService.createAccount(dto);
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
     /**
@@ -45,8 +49,9 @@ public class AccountController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<AccountResponseDTO> getAccountById(@PathVariable("id") Long id) {
-        AccountResponseDTO account = accountService.getAccountById(id);
-        return ResponseEntity.ok(account);
+        Account account = accountService.getAccountById(id);
+        AccountResponseDTO response = modelMapper.map(account, AccountResponseDTO.class);
+        return ResponseEntity.ok(response);
     }
 
     /**
@@ -61,8 +66,9 @@ public class AccountController {
             @RequestParam(value = "page", defaultValue = "0") int page,
             @RequestParam(value = "size", defaultValue = "10") int size) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<AccountResponseDTO> accounts = accountService.getAllAccounts(pageable);
-        return ResponseEntity.ok(accounts);
+        Page<Account> accounts = accountService.getAllAccounts(pageable);
+        Page<AccountResponseDTO> response = accounts.map(account -> modelMapper.map(account, AccountResponseDTO.class));
+        return ResponseEntity.ok(response);
     }
 
     /**
@@ -73,8 +79,11 @@ public class AccountController {
      */
     @GetMapping("/product/{productId}")
     public ResponseEntity<List<AccountResponseDTO>> getAccountsByProduct(@PathVariable("productId") Long productId) {
-        List<AccountResponseDTO> accounts = accountService.getAccountsByProduct(productId);
-        return ResponseEntity.ok(accounts);
+        List<Account> accounts = accountService.getAccountsByProduct(productId);
+        List<AccountResponseDTO> response = accounts.stream()
+                .map(account -> modelMapper.map(account, AccountResponseDTO.class))
+                .toList();
+        return ResponseEntity.ok(response);
     }
 
     /**
@@ -85,8 +94,11 @@ public class AccountController {
      */
     @GetMapping("/product/{productId}/available")
     public ResponseEntity<List<AccountResponseDTO>> getAvailableAccountsByProduct(@PathVariable("productId") Long productId) {
-        List<AccountResponseDTO> accounts = accountService.getAvailableAccountsByProduct(productId);
-        return ResponseEntity.ok(accounts);
+        List<Account> accounts = accountService.getAvailableAccountsByProduct(productId);
+        List<AccountResponseDTO> response = accounts.stream()
+                .map(account -> modelMapper.map(account, AccountResponseDTO.class))
+                .toList();
+        return ResponseEntity.ok(response);
     }
 
     /**
@@ -100,8 +112,8 @@ public class AccountController {
     public ResponseEntity<AccountResponseDTO> updateAccount(
             @PathVariable("id") Long id,
             @Valid @RequestBody AccountRequestDTO dto) {
-        AccountResponseDTO updatedAccount = accountService.updateAccount(id, dto);
-        return ResponseEntity.ok(updatedAccount);
+        AccountResponseDTO response = accountService.updateAccount(id, dto);
+        return ResponseEntity.ok(response);
     }
 
     /**

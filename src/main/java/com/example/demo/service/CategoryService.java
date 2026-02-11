@@ -12,41 +12,27 @@ import org.springframework.data.domain.Pageable;
  */
 public interface CategoryService {
 
-    CategoryResponseDTO findCategoryById(Long id);
+    Category findCategoryById(Long id);
     
-    /**
-     * Create a new category.
-     * 
-     * @param dto the category data
-     * @return the created category as CategoryResponseDTO
-     */
     CategoryResponseDTO createCategory(CategoryRequestDTO dto);
     
     /**
      * Get a category by its ID.
      * 
      * @param id the category ID
-     * @return the category as CategoryResponseDTO
+     * @return the category entity
      * @throws com.example.demo.exception.ResourceNotFoundException if category not found
      */
-    CategoryResponseDTO getCategoryById(Long id);
+    Category getCategoryById(Long id);
     
     /**
      * Get all categories with pagination.
      * 
      * @param pageable pagination information
-     * @return page of categories
+     * @return page of category entities
      */
-    Page<CategoryResponseDTO> getAllCategories(Pageable pageable);
+    Page<Category> getAllCategories(Pageable pageable);
     
-    /**
-     * Update an existing category.
-     * 
-     * @param id the category ID
-     * @param dto the updated category data
-     * @return the updated category as CategoryResponseDTO
-     * @throws com.example.demo.exception.ResourceNotFoundException if category not found
-     */
     CategoryResponseDTO updateCategory(Long id, CategoryRequestDTO dto);
     
     /**

@@ -31,50 +31,43 @@ public class AccountServiceImpl implements AccountService {
     @Autowired
     private ProductRepository productRepository;
 
+    @Autowired
+    private org.modelmapper.ModelMapper modelMapper;
+
     @Override
     @Transactional
     public AccountResponseDTO createAccount(AccountRequestDTO dto) {
         Product product = productRepository.findById(dto.getProductId())
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + dto.getProductId()));
         
-        Account account = new Account();
+        Account account = modelMapper.map(dto, Account.class);
         account.setProduct(product);
-        account.setUsername(dto.getUsername());
-        account.setPassword(dto.getPassword());
         account.setStatus(dto.getStatus() != null ? dto.getStatus() : "AVAILABLE");
         account.setCreated(Instant.now());
         
         Account savedAccount = accountRepository.save(account);
-        return mapToResponseDTO(savedAccount);
+        return modelMapper.map(savedAccount, AccountResponseDTO.class);
     }
 
     @Override
-    public AccountResponseDTO getAccountById(Long id) {
-        Account account = accountRepository.findById(id)
+    public Account getAccountById(Long id) {
+        return accountRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Account not found with id: " + id));
-        return mapToResponseDTO(account);
     }
 
     @Override
-    public Page<AccountResponseDTO> getAllAccounts(Pageable pageable) {
-        return accountRepository.findAll(pageable)
-                .map(this::mapToResponseDTO);
+    public Page<Account> getAllAccounts(Pageable pageable) {
+        return accountRepository.findAll(pageable);
     }
 
     @Override
-    public List<AccountResponseDTO> getAccountsByProduct(Long productId) {
-        List<Account> accounts = accountRepository.findByProductId(productId);
-        return accounts.stream()
-                .map(this::mapToResponseDTO)
-                .collect(Collectors.toList());
+    public List<Account> getAccountsByProduct(Long productId) {
+        return accountRepository.findByProductId(productId);
     }
 
     @Override
-    public List<AccountResponseDTO> getAvailableAccountsByProduct(Long productId) {
-        List<Account> accounts = accountRepository.findByProductIdAndStatus(productId, "AVAILABLE");
-        return accounts.stream()
-                .map(this::mapToResponseDTO)
-                .collect(Collectors.toList());
+    public List<Account> getAvailableAccountsByProduct(Long productId) {
+        return accountRepository.findByProductIdAndStatus(productId, "AVAILABLE");
     }
 
     @Override
@@ -86,9 +79,10 @@ public class AccountServiceImpl implements AccountService {
         Product product = productRepository.findById(dto.getProductId())
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + dto.getProductId()));
         
+        // Map DTO to existing entity
+        modelMapper.map(dto, account);
+        
         account.setProduct(product);
-        account.setUsername(dto.getUsername());
-        account.setPassword(dto.getPassword());
         if (dto.getStatus() != null) {
             account.setStatus(dto.getStatus());
             if ("SOLD".equals(dto.getStatus())) {
@@ -96,8 +90,8 @@ public class AccountServiceImpl implements AccountService {
             }
         }
         
-        Account updatedAccount = accountRepository.save(account);
-        return mapToResponseDTO(updatedAccount);
+        Account savedAccount = accountRepository.save(account);
+        return modelMapper.map(savedAccount, AccountResponseDTO.class);
     }
 
     @Override
@@ -106,24 +100,5 @@ public class AccountServiceImpl implements AccountService {
         Account account = accountRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Account not found with id: " + id));
         accountRepository.delete(account);
-    }
-
-    /**
-     * Maps Account entity to AccountResponseDTO.
-     * 
-     * @param account the account entity
-     * @return the account response DTO
-     */
-    private AccountResponseDTO mapToResponseDTO(Account account) {
-        return AccountResponseDTO.builder()
-                .id(account.getId())
-                .productId(account.getProduct().getId())
-                .productName(account.getProduct().getName())
-                .username(account.getUsername())
-                .password(account.getPassword())
-                .status(account.getStatus())
-                .sold(account.getSold())
-                .created(account.getCreated())
-                .build();
     }
 }

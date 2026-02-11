@@ -12,39 +12,25 @@ import org.springframework.data.domain.Pageable;
  */
 public interface UserService {
     
-    /**
-     * Create a new user.
-     * 
-     * @param dto the user data
-     * @return the created user as UserResponseDTO
-     */
     UserResponseDTO createUser(UserRequestDTO dto);
     
     /**
      * Get a user by ID.
      * 
      * @param id the user ID
-     * @return the user as UserResponseDTO
+     * @return the user entity
      * @throws com.example.demo.exception.ResourceNotFoundException if user not found
      */
-    UserResponseDTO getUserById(Long id);
+    User getUserById(Long id);
     
     /**
      * Get all users with pagination.
      * 
      * @param pageable pagination information
-     * @return page of users
+     * @return page of user entities
      */
-    Page<UserResponseDTO> getAllUsers(Pageable pageable);
+    Page<User> getAllUsers(Pageable pageable);
     
-    /**
-     * Update an existing user.
-     * 
-     * @param id the user ID
-     * @param dto the updated user data
-     * @return the updated user as UserResponseDTO
-     * @throws com.example.demo.exception.ResourceNotFoundException if user not found
-     */
     UserResponseDTO updateUser(Long id, UserRequestDTO dto);
     
     /**

@@ -2,6 +2,7 @@ package com.example.demo.controller;
 
 import com.example.demo.dto.request.ProductRequestDTO;
 import com.example.demo.dto.response.ProductResponseDTO;
+import com.example.demo.model.entity.Product;
 import com.example.demo.service.ProductService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +26,9 @@ public class ProductController {
     @Autowired
     private ProductService productService;
 
+    @Autowired
+    private org.modelmapper.ModelMapper modelMapper;
+
     /**
      * Create a new product.
      * 
@@ -33,8 +37,8 @@ public class ProductController {
      */
     @PostMapping("/add")
     public ResponseEntity<ProductResponseDTO> addProduct(@Valid @RequestBody ProductRequestDTO dto) {
-        ProductResponseDTO createdProduct = productService.createProduct(dto);
-        return new ResponseEntity<>(createdProduct, HttpStatus.CREATED);
+        ProductResponseDTO response = productService.createProduct(dto);
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
     /**
@@ -45,8 +49,9 @@ public class ProductController {
      */
     @GetMapping("/findById/{id}")
     public ResponseEntity<ProductResponseDTO> getProductById(@PathVariable("id") Long id) {
-        ProductResponseDTO product = productService.getProductById(id);
-        return ResponseEntity.ok(product);
+        Product product = productService.getProductById(id);
+        ProductResponseDTO response = modelMapper.map(product, ProductResponseDTO.class);
+        return ResponseEntity.ok(response);
     }
 
     /**
@@ -61,8 +66,9 @@ public class ProductController {
             @RequestParam(value = "page", defaultValue = "0") int page,
             @RequestParam(value = "size", defaultValue = "10") int size) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<ProductResponseDTO> products = productService.getAllProducts(pageable);
-        return ResponseEntity.ok(products);
+        Page<Product> products = productService.getAllProducts(pageable);
+        Page<ProductResponseDTO> response = products.map(product -> modelMapper.map(product, ProductResponseDTO.class));
+        return ResponseEntity.ok(response);
     }
 
     /**
@@ -76,8 +82,8 @@ public class ProductController {
     public ResponseEntity<ProductResponseDTO> updateProduct(
             @PathVariable("id") Long id,
             @Valid @RequestBody ProductRequestDTO dto) {
-        ProductResponseDTO updatedProduct = productService.updateProduct(id, dto);
-        return ResponseEntity.ok(updatedProduct);
+        ProductResponseDTO response = productService.updateProduct(id, dto);
+        return ResponseEntity.ok(response);
     }
 
     /**

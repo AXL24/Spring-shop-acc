@@ -1,5 +1,6 @@
 package com.example.demo.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -15,6 +16,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProductImage {
+    public static final int MAX_IMG_PER_PRODUCT = 5;
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,5 +27,6 @@ public class ProductImage {
     private Product product;
     
     @Column(name = "image_url", nullable = false, length = 500)
+    @JsonProperty(value = "image_url")
     private String imageUrl;
 }

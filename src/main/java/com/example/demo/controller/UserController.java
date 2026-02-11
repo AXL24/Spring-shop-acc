@@ -2,6 +2,7 @@ package com.example.demo.controller;
 
 import com.example.demo.dto.request.UserRequestDTO;
 import com.example.demo.dto.response.UserResponseDTO;
+import com.example.demo.model.entity.User;
 import com.example.demo.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +24,9 @@ public class UserController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private org.modelmapper.ModelMapper modelMapper;
+
     /**
      * Create a new user.
      * 
@@ -31,8 +35,8 @@ public class UserController {
      */
     @PostMapping("/add")
     public ResponseEntity<UserResponseDTO> addUser(@Valid @RequestBody UserRequestDTO dto) {
-        UserResponseDTO createdUser = userService.createUser(dto);
-        return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
+        UserResponseDTO response = userService.createUser(dto);
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
     /**
@@ -43,8 +47,9 @@ public class UserController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<UserResponseDTO> getUserById(@PathVariable("id") Long id) {
-        UserResponseDTO user = userService.getUserById(id);
-        return ResponseEntity.ok(user);
+        User user = userService.getUserById(id);
+        UserResponseDTO response = modelMapper.map(user, UserResponseDTO.class);
+        return ResponseEntity.ok(response);
     }
 
     /**
@@ -59,8 +64,9 @@ public class UserController {
             @RequestParam(value = "page", defaultValue = "0") int page,
             @RequestParam(value = "size", defaultValue = "10") int size) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<UserResponseDTO> users = userService.getAllUsers(pageable);
-        return ResponseEntity.ok(users);
+        Page<User> users = userService.getAllUsers(pageable);
+        Page<UserResponseDTO> response = users.map(user -> modelMapper.map(user, UserResponseDTO.class));
+        return ResponseEntity.ok(response);
     }
 
     /**
@@ -74,8 +80,8 @@ public class UserController {
     public ResponseEntity<UserResponseDTO> updateUser(
             @PathVariable("id") Long id,
             @Valid @RequestBody UserRequestDTO dto) {
-        UserResponseDTO updatedUser = userService.updateUser(id, dto);
-        return ResponseEntity.ok(updatedUser);
+        UserResponseDTO response = userService.updateUser(id, dto);
+        return ResponseEntity.ok(response);
     }
 
     /**

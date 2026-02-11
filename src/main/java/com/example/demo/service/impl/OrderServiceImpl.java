@@ -14,6 +14,7 @@ import com.example.demo.repository.mysql.OrderRepository;
 import com.example.demo.repository.mysql.ProductRepository;
 import com.example.demo.repository.mysql.UserRepository;
 import com.example.demo.service.OrderService;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -24,6 +25,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -46,6 +48,9 @@ public class OrderServiceImpl implements OrderService {
     @Autowired
     private ProductRepository productRepository;
 
+    @Autowired
+    private ModelMapper modelMapper;
+
     //TODO IMPLEMENT RESERVATION LOGIC FOR PENDING ORDERS
     @Override
     @Transactional
@@ -53,16 +58,19 @@ public class OrderServiceImpl implements OrderService {
         // Validate user exists
         User user = userRepository.findById(dto.getUserId())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + dto.getUserId()));
+
+
+        modelMapper.typeMap(OrderRequestDTO.class, Order.class);
         
         // Create order
         Order order = new Order();
+        modelMapper.map(dto, order);
         order.setOrderCode(generateOrderCode());
         order.setUser(user);
-        //order.setStatus("PENDING"); <- IN CART
         order.setCustomerNote(dto.getCustomerNote());
         order.setCreated(Instant.now());
         order.setUpdated(Instant.now());
-        
+
         // Create order items and calculate total
         BigDecimal totalAmount = BigDecimal.ZERO;
         List<OrderItem> orderItems = new ArrayList<>();
@@ -97,42 +105,114 @@ public class OrderServiceImpl implements OrderService {
         order.setOrderItems(orderItems);
         
         Order savedOrder = orderRepository.save(order);
-        return mapToResponseDTO(savedOrder);
-    }
-
-    @Override
-    public OrderResponseDTO getOrderById(Long id) {
-        Order order = orderRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + id));
-        return mapToResponseDTO(order);
-    }
-
-    @Override
-    public Page<OrderResponseDTO> getAllOrders(Pageable pageable) {
-        return orderRepository.findAll(pageable)
-                .map(this::mapToResponseDTO);
-    }
-
-    @Override
-    public List<OrderResponseDTO> getUserOrders(Long userId) {
-        List<Order> orders = orderRepository.findByUserId(userId);
-        return orders.stream()
-                .map(this::mapToResponseDTO)
-                .collect(Collectors.toList());
+        OrderResponseDTO response =  modelMapper.map(savedOrder, OrderResponseDTO.class);
+        response.setUsername(user.getUsername());
+        return response;
     }
 
     @Override
     @Transactional
-    public OrderResponseDTO updateOrderStatus(Long id, String status) {
+    public OrderResponseDTO updateOrderWithDetails(Long id, List<OrderItemRequestDTO> items) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + id));
+
+        // Only allow updates if status is null (cart/draft state)
+        if (order.getStatus() != null) {
+            throw new IllegalStateException("Cannot update order that is already placed (status not null)");
+        }
+
+        // Handle items and stock
+        // 1. Restore stock for existing items
+        if (order.getOrderItems() != null) {
+            for (OrderItem existingItem : order.getOrderItems()) {
+                Product product = existingItem.getProduct();
+                product.setStock(product.getStock() + existingItem.getQuantity());
+                productRepository.save(product);
+            }
+            order.getOrderItems().clear();
+        } else {
+            order.setOrderItems(new ArrayList<>());
+        }
+
+        // 2. Add new items and deduct stock
+        BigDecimal totalAmount = BigDecimal.ZERO;
+        List<OrderItem> newOrderItems = new ArrayList<>();
         
-        order.setStatus(status);
+        for (OrderItemRequestDTO itemDto : items) {
+            Product product = productRepository.findById(itemDto.getProductId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + itemDto.getProductId()));
+            
+            if (product.getStock() < itemDto.getQuantity()) {
+                throw new IllegalArgumentException("Insufficient stock for product: " + product.getName());
+            }
+            
+            OrderItem orderItem = new OrderItem();
+            orderItem.setOrder(order);
+            orderItem.setProduct(product);
+            orderItem.setQuantity(itemDto.getQuantity());
+            orderItem.setUnitPrice(product.getPrice());
+            
+            BigDecimal itemTotal = product.getPrice().multiply(BigDecimal.valueOf(itemDto.getQuantity()));
+            orderItem.setTotalPrice(itemTotal);
+            totalAmount = totalAmount.add(itemTotal);
+            
+            newOrderItems.add(orderItem);
+            
+            product.setStock(product.getStock() - itemDto.getQuantity());
+            productRepository.save(product);
+        }
+        
+        order.getOrderItems().addAll(newOrderItems);
+        order.setTotalAmount(totalAmount);
         order.setUpdated(Instant.now());
         
-        Order updatedOrder = orderRepository.save(order);
-        return mapToResponseDTO(updatedOrder);
+        Order savedOrder = orderRepository.save(order);
+        OrderResponseDTO response = modelMapper.map(savedOrder, OrderResponseDTO.class);
+        response.setUsername(order.getUser().getUsername());
+        return response;
     }
+
+    @Override
+    public Order getOrderById(Long id) {
+        return orderRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + id));
+    }
+
+    @Override
+    public Page<Order> getAllOrders(Pageable pageable) {
+        return orderRepository.findAll(pageable);
+    }
+
+    @Override
+    public List<Order> getUserOrders(Long userId) {
+        return orderRepository.findByUserId(userId);
+    }
+
+    @Override
+    public Order updateOrder(OrderRequestDTO dto) {
+        return null;
+    }
+//
+//    @Override
+//    @Transactional
+//    public Order updateOrder(Long id, String status) {
+//        Order order = orderRepository.findById(id)
+//                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + id));
+//
+//        order.setStatus(status);
+//        order.setUpdated(Instant.now());
+//
+//        return orderRepository.save(order);
+//    }
+
+//    @Override
+//    @Transactional
+//    public OrderResponseDTO updateOrder(Long id, OrderRequestDTO dto) {
+//        return updateOrderWithDetails(id, dto.getOrderItems());
+//    }
+
+
+
 
     @Override
     @Transactional
@@ -142,58 +222,10 @@ public class OrderServiceImpl implements OrderService {
         orderRepository.delete(order);
     }
 
-    /**
-     * Generates a unique order code.
-     * Format: ORD-{timestamp}-{random}
-     * 
-     * @return the generated order code
-     */
+
     private String generateOrderCode() {
         String timestamp = String.valueOf(System.currentTimeMillis());
         String random = UUID.randomUUID().toString().substring(0, 4).toUpperCase();
-        return timestamp + "-" + random;
-    }
-
-    /**
-     * Maps Order entity to OrderResponseDTO.
-     * 
-     * @param order the order entity
-     * @return the order response DTO
-     */
-    private OrderResponseDTO mapToResponseDTO(Order order) {
-        List<OrderItemResponseDTO> orderItemDTOs = order.getOrderItems().stream()
-                .map(this::mapOrderItemToResponseDTO)
-                .collect(Collectors.toList());
-        
-        return OrderResponseDTO.builder()
-                .id(order.getId())
-                .orderCode(order.getOrderCode())
-                .userId(order.getUser().getId())
-                .username(order.getUser().getUsername())
-                .totalAmount(order.getTotalAmount())
-                .status(order.getStatus())
-                .customerNote(order.getCustomerNote())
-                .orderItems(orderItemDTOs)
-                .created(order.getCreated())
-                .updated(order.getUpdated())
-                .build();
-    }
-
-    /**
-     * Maps OrderItem entity to OrderItemResponseDTO.
-     * 
-     * @param orderItem the order item entity
-     * @return the order item response DTO
-     */
-    private OrderItemResponseDTO mapOrderItemToResponseDTO(OrderItem orderItem) {
-        return OrderItemResponseDTO.builder()
-                .id(orderItem.getId())
-                .productId(orderItem.getProduct().getId())
-                .productName(orderItem.getProduct().getName())
-                .quantity(orderItem.getQuantity())
-                .unitPrice(orderItem.getUnitPrice())
-                .totalPrice(orderItem.getTotalPrice())
-                .delivered(orderItem.getDelivered())
-                .build();
+        return timestamp + "." + random;
     }
 }

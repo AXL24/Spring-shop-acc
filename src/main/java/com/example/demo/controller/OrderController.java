@@ -1,7 +1,9 @@
 package com.example.demo.controller;
 
+import com.example.demo.dto.request.OrderItemRequestDTO;
 import com.example.demo.dto.request.OrderRequestDTO;
 import com.example.demo.dto.response.OrderResponseDTO;
+import com.example.demo.model.entity.Order;
 import com.example.demo.service.OrderService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +28,9 @@ public class  OrderController {
     @Autowired
     private OrderService orderService;
 
+    @Autowired
+    private org.modelmapper.ModelMapper modelMapper;
+
     /**
      * Create a new order.
      * 
@@ -34,8 +39,8 @@ public class  OrderController {
      */
     @PostMapping
     public ResponseEntity<OrderResponseDTO> createOrder(@Valid @RequestBody OrderRequestDTO dto) {
-        OrderResponseDTO createdOrder = orderService.createOrder(dto);
-        return new ResponseEntity<>(createdOrder, HttpStatus.CREATED);
+        OrderResponseDTO response = orderService.createOrder(dto);
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
     /**
@@ -46,8 +51,9 @@ public class  OrderController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<OrderResponseDTO> getOrderById(@PathVariable("id") Long id) {
-        OrderResponseDTO order = orderService.getOrderById(id);
-        return ResponseEntity.ok(order);
+        Order order = orderService.getOrderById(id);
+        OrderResponseDTO response = modelMapper.map(order, OrderResponseDTO.class);
+        return ResponseEntity.ok(response);
     }
 
     /**
@@ -62,8 +68,9 @@ public class  OrderController {
             @RequestParam(value = "page", defaultValue = "0") int page,
             @RequestParam(value = "size", defaultValue = "10") int size) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<OrderResponseDTO> orders = orderService.getAllOrders(pageable);
-        return ResponseEntity.ok(orders);
+        Page<Order> orders = orderService.getAllOrders(pageable);
+        Page<OrderResponseDTO> response = orders.map(order -> modelMapper.map(order, OrderResponseDTO.class));
+        return ResponseEntity.ok(response);
     }
 
     /**
@@ -74,8 +81,11 @@ public class  OrderController {
      */
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<OrderResponseDTO>> getUserOrders(@PathVariable("userId") Long userId) {
-        List<OrderResponseDTO> orders = orderService.getUserOrders(userId);
-        return ResponseEntity.ok(orders);
+        List<Order> orders = orderService.getUserOrders(userId);
+        List<OrderResponseDTO> response = orders.stream()
+                .map(order -> modelMapper.map(order, OrderResponseDTO.class))
+                .toList();
+        return ResponseEntity.ok(response);
     }
 
     /**
@@ -93,8 +103,25 @@ public class  OrderController {
         if (status == null || status.isEmpty()) {
             throw new IllegalArgumentException("Status is required");
         }
-        OrderResponseDTO updatedOrder = orderService.updateOrderStatus(id, status);
-        return ResponseEntity.ok(updatedOrder);
+        Order updatedOrder = orderService.updateOrderStatus(id, status);
+        OrderResponseDTO response = modelMapper.map(updatedOrder, OrderResponseDTO.class);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Update order items.
+     * Only orders with null status (draft/cart) can be updated.
+     * 
+     * @param id the order ID
+     * @param items list of updated items
+     * @return the updated order
+     */
+    @PatchMapping("/{id}")
+    public ResponseEntity<OrderResponseDTO> updateOrderDetail(
+            @PathVariable("id") Long id,
+            @Valid @RequestBody List<OrderItemRequestDTO> items) {
+        OrderResponseDTO response = orderService.updateOrderWithDetails(id, items);
+        return ResponseEntity.ok(response);
     }
 
     /**

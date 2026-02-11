@@ -35,6 +35,9 @@ public class CategoryController {
     @Autowired
     private FileStorageService fileStorageService;
 
+    @Autowired
+    private org.modelmapper.ModelMapper modelMapper;
+
     /**
      * Create a new category with optional image upload.
      * 
@@ -58,9 +61,9 @@ public class CategoryController {
             dto.setImageUrl(imageUrl);
 
             // 3. Create category
-            CategoryResponseDTO createdCategory = categoryService.createCategory(dto);
+            CategoryResponseDTO response = categoryService.createCategory(dto);
 
-            return new ResponseEntity<>(createdCategory, HttpStatus.CREATED);
+            return new ResponseEntity<>(response, HttpStatus.CREATED);
 
         } catch (IllegalArgumentException e) {
             // Validation error (file size, type, etc.)
@@ -83,8 +86,9 @@ public class CategoryController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<CategoryResponseDTO> getCategoryById(@PathVariable("id") Long id) {
-        CategoryResponseDTO category = categoryService.getCategoryById(id);
-        return ResponseEntity.ok(category);
+        Category category = categoryService.getCategoryById(id);
+        CategoryResponseDTO response = modelMapper.map(category, CategoryResponseDTO.class);
+        return ResponseEntity.ok(response);
     }
 
     /**
@@ -99,8 +103,9 @@ public class CategoryController {
             @RequestParam(value = "page", defaultValue = "0") int page,
             @RequestParam(value = "size", defaultValue = "10") int size) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<CategoryResponseDTO> categories = categoryService.getAllCategories(pageable);
-        return ResponseEntity.ok(categories);
+        Page<Category> categories = categoryService.getAllCategories(pageable);
+        Page<CategoryResponseDTO> response = categories.map(category -> modelMapper.map(category, CategoryResponseDTO.class));
+        return ResponseEntity.ok(response);
     }
 
     /**
@@ -119,7 +124,7 @@ public class CategoryController {
     ) {
         try {
             // 1. Get existing category
-            CategoryResponseDTO existingCategory = categoryService.findCategoryById(id);
+            Category existingCategory = categoryService.findCategoryById(id);
 
             // 2. Handle image update
             if (image != null && !image.isEmpty()) {
@@ -137,10 +142,9 @@ public class CategoryController {
             }
 
             // 3. Update category
-            CategoryResponseDTO updatedCategory = categoryService.updateCategory(id, dto);
+            CategoryResponseDTO response = categoryService.updateCategory(id, dto);
 
-            return ResponseEntity.ok(updatedCategory);
-
+            return ResponseEntity.ok(response);
         } catch (IOException e) {
             throw new ResponseStatusException(
                     HttpStatus.INTERNAL_SERVER_ERROR,
@@ -158,7 +162,7 @@ public class CategoryController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCategory(@PathVariable("id") Long id) {
         // Get category to delete associated image
-        CategoryResponseDTO category = categoryService.findCategoryById(id);
+        Category category = categoryService.findCategoryById(id);
         
         // Delete image if exists
         if (category.getImageUrl() != null) {

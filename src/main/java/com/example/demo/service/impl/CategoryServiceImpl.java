@@ -24,38 +24,34 @@ public class CategoryServiceImpl implements CategoryService {
     @Autowired
     private CategoryRepository categoryRepository;
 
+    @Autowired
+    private org.modelmapper.ModelMapper modelMapper;
+
     @Override
-    public CategoryResponseDTO findCategoryById(Long id) {
+    public Category findCategoryById(Long id) {
         return categoryRepository.findById(id)
-                .map(this::mapToResponseDTO)
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + id));
     }
 
     @Override
     @Transactional
     public CategoryResponseDTO createCategory(CategoryRequestDTO dto) {
-        Category category = Category.builder()
-                .name(dto.getName())
-                .description(dto.getDescription())
-                .imageUrl(dto.getImageUrl())
-                .created(Instant.now())
-                .build();
+        Category category = modelMapper.map(dto, Category.class);
+        category.setCreated(Instant.now());
         
         Category savedCategory = categoryRepository.save(category);
-        return mapToResponseDTO(savedCategory);
+        return modelMapper.map(savedCategory, CategoryResponseDTO.class);
     }
     
     @Override
-    public CategoryResponseDTO getCategoryById(Long id) {
-        Category category = categoryRepository.findById(id)
+    public Category getCategoryById(Long id) {
+        return categoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + id));
-        return mapToResponseDTO(category);
     }
     
     @Override
-    public Page<CategoryResponseDTO> getAllCategories(Pageable pageable) {
-        return categoryRepository.findAll(pageable)
-                .map(this::mapToResponseDTO);
+    public Page<Category> getAllCategories(Pageable pageable) {
+        return categoryRepository.findAll(pageable);
     }
     
     @Override
@@ -64,12 +60,11 @@ public class CategoryServiceImpl implements CategoryService {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + id));
         
-        category.setName(dto.getName());
-        category.setDescription(dto.getDescription());
-        category.setImageUrl(dto.getImageUrl());
+        // Map DTO fields to existing entity
+        modelMapper.map(dto, category);
         
-        Category updatedCategory = categoryRepository.save(category);
-        return mapToResponseDTO(updatedCategory);
+        Category savedCategory = categoryRepository.save(category);
+        return modelMapper.map(savedCategory, CategoryResponseDTO.class);
     }
     
     @Override
@@ -78,21 +73,5 @@ public class CategoryServiceImpl implements CategoryService {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + id));
         categoryRepository.delete(category);
-    }
-    
-    /**
-     * Maps Category entity to CategoryResponseDTO.
-     * 
-     * @param category the category entity
-     * @return the category response DTO
-     */
-    private CategoryResponseDTO mapToResponseDTO(Category category) {
-        return CategoryResponseDTO.builder()
-                .id(category.getId())
-                .name(category.getName())
-                .description(category.getDescription())
-                .imageUrl(category.getImageUrl())
-                .created(category.getCreated())
-                .build();
     }
 }

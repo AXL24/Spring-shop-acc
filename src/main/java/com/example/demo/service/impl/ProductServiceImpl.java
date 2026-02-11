@@ -29,39 +29,35 @@ public class ProductServiceImpl implements ProductService {
     @Autowired
     private CategoryRepository categoryRepository;
 
+    @Autowired
+    private org.modelmapper.ModelMapper modelMapper;
+
     @Override
     @Transactional
     public ProductResponseDTO createProduct(ProductRequestDTO productRequestDTO) {
         Category existingCategory = categoryRepository.findById(productRequestDTO.getCategory())
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + productRequestDTO.getCategory()));
 
-        Product newProduct = Product.builder()
-                .name(productRequestDTO.getName())
-                .price(productRequestDTO.getPrice())
-                .category(existingCategory)
-                .description(productRequestDTO.getDescription())
-                .platform(productRequestDTO.getPlatform())
-                .stock(productRequestDTO.getStock() != null ? productRequestDTO.getStock() : 0)
-                .active(true)
-                .created(Instant.now())
-                .updated(Instant.now())
-                .build();
+        Product newProduct = modelMapper.map(productRequestDTO, Product.class);
+        newProduct.setCategory(existingCategory);
+        newProduct.setStock(productRequestDTO.getStock() != null ? productRequestDTO.getStock() : 0);
+        newProduct.setActive(true);
+        newProduct.setCreated(Instant.now());
+        newProduct.setUpdated(Instant.now());
                 
         Product savedProduct = productRepository.save(newProduct);
-        return mapToResponseDTO(savedProduct);
+        return modelMapper.map(savedProduct, ProductResponseDTO.class);
     }
 
     @Override
-    public ProductResponseDTO getProductById(Long id) {
-        Product product = productRepository.findById(id)
+    public Product getProductById(Long id) {
+        return productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + id));
-        return mapToResponseDTO(product);
     }
 
     @Override
-    public Page<ProductResponseDTO> getAllProducts(Pageable pageable) {
-        return productRepository.findAll(pageable)
-                .map(this::mapToResponseDTO);
+    public Page<Product> getAllProducts(Pageable pageable) {
+        return productRepository.findAll(pageable);
     }
 
     @Override
@@ -73,16 +69,15 @@ public class ProductServiceImpl implements ProductService {
         Category category = categoryRepository.findById(dto.getCategory())
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + dto.getCategory()));
         
-        product.setName(dto.getName());
-        product.setPrice(dto.getPrice());
+        // Map DTO to existing entity
+        modelMapper.map(dto, product);
+        
         product.setCategory(category);
-        product.setDescription(dto.getDescription());
-        product.setPlatform(dto.getPlatform());
         product.setStock(dto.getStock() != null ? dto.getStock() : 0);
         product.setUpdated(Instant.now());
         
-        Product updatedProduct = productRepository.save(product);
-        return mapToResponseDTO(updatedProduct);
+        Product savedProduct = productRepository.save(product);
+        return modelMapper.map(savedProduct, ProductResponseDTO.class);
     }
 
     @Override
@@ -101,27 +96,5 @@ public class ProductServiceImpl implements ProductService {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + id));
         productRepository.delete(product);
-    }
-
-    /**
-     * Maps Product entity to ProductResponseDTO.
-     * 
-     * @param product the product entity
-     * @return the product response DTO
-     */
-    private ProductResponseDTO mapToResponseDTO(Product product) {
-        return ProductResponseDTO.builder()
-                .id(product.getId())
-                .name(product.getName())
-                .price(product.getPrice())
-                .categoryId(product.getCategory().getId())
-                .categoryName(product.getCategory().getName())
-                .description(product.getDescription())
-                .platform(product.getPlatform())
-                .stock(product.getStock())
-                .active(product.getActive())
-                .created(product.getCreated())
-                .updated(product.getUpdated())
-                .build();
     }
 }

@@ -1,5 +1,6 @@
 package com.example.demo.repository.mysql;
 
+import com.example.demo.model.entity.Order;
 import com.example.demo.model.entity.OrderItem;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -18,4 +19,6 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
      * @return list of order items belonging to the order
      */
     List<OrderItem> findByOrderId(Long orderId);
+
+    List<OrderItem> order(Order order);
 }

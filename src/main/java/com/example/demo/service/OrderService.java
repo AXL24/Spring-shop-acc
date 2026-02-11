@@ -2,6 +2,7 @@ package com.example.demo.service;
 
 import com.example.demo.dto.request.OrderRequestDTO;
 import com.example.demo.dto.response.OrderResponseDTO;
+import com.example.demo.model.entity.Order;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -13,41 +14,32 @@ import java.util.List;
  */
 public interface OrderService {
     
-    /**
-     * Create a new order with order items.
-     * Automatically calculates total amount and generates order code.
-     * 
-     * @param dto the order data with items
-     * @return the created order as OrderResponseDTO
-     * @throws com.example.demo.exception.ResourceNotFoundException if user or products not found
-     * @throws IllegalArgumentException if insufficient stock
-     */
     OrderResponseDTO createOrder(OrderRequestDTO dto);
     
     /**
      * Get an order by its ID.
      * 
      * @param id the order ID
-     * @return the order as OrderResponseDTO
+     * @return the order entity
      * @throws com.example.demo.exception.ResourceNotFoundException if order not found
      */
-    OrderResponseDTO getOrderById(Long id);
+    Order getOrderById(Long id);
     
     /**
      * Get all orders with pagination.
      * 
      * @param pageable pagination information
-     * @return page of orders
+     * @return page of order entities
      */
-    Page<OrderResponseDTO> getAllOrders(Pageable pageable);
+    Page<Order> getAllOrders(Pageable pageable);
     
     /**
      * Get all orders for a specific user.
      * 
      * @param userId the user ID
-     * @return list of orders for the user
+     * @return list of order entities for the user
      */
-    List<OrderResponseDTO> getUserOrders(Long userId);
+    List<Order> getUserOrders(Long userId);
     
     /**
      * Update order status.
@@ -55,10 +47,15 @@ public interface OrderService {
      * 
      * @param id the order ID
      * @param status the new status
-     * @return the updated order
+     * @return the updated order entity
      * @throws com.example.demo.exception.ResourceNotFoundException if order not found
      */
-    OrderResponseDTO updateOrderStatus(Long id, String status);
+
+    Order updateOrder(OrderRequestDTO dto);
+
+
+
+    OrderResponseDTO updateOrderWithDetails(Long id, List<com.example.demo.dto.request.OrderItemRequestDTO> items);
     
     /**
      * Delete an order.

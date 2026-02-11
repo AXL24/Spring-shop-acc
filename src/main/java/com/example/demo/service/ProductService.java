@@ -2,6 +2,7 @@ package com.example.demo.service;
 
 import com.example.demo.dto.request.ProductRequestDTO;
 import com.example.demo.dto.response.ProductResponseDTO;
+import com.example.demo.model.entity.Product;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -11,39 +12,25 @@ import org.springframework.data.domain.Pageable;
  */
 public interface ProductService {
     
-    /**
-     * Create a new product.
-     * 
-     * @param productRequestDTO the product data
-     * @return the created product as ProductResponseDTO
-     */
     ProductResponseDTO createProduct(ProductRequestDTO productRequestDTO);
     
     /**
      * Get a product by ID.
      * 
      * @param id the product ID
-     * @return the product as ProductResponseDTO
+     * @return the product entity
      * @throws com.example.demo.exception.ResourceNotFoundException if product not found
      */
-    ProductResponseDTO getProductById(Long id);
+    Product getProductById(Long id);
     
     /**
      * Get all products with pagination.
      * 
      * @param pageable pagination information
-     * @return page of products
+     * @return page of product entities
      */
-    Page<ProductResponseDTO> getAllProducts(Pageable pageable);
+    Page<Product> getAllProducts(Pageable pageable);
     
-    /**
-     * Update an existing product.
-     * 
-     * @param id the product ID
-     * @param dto the updated product data
-     * @return the updated product as ProductResponseDTO
-     * @throws com.example.demo.exception.ResourceNotFoundException if product not found
-     */
     ProductResponseDTO updateProduct(Long id, ProductRequestDTO dto);
     
     /**
