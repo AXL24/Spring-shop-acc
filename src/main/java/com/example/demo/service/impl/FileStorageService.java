@@ -45,9 +45,9 @@ public class FileStorageService {
     }
 
     /**
-     * Upload file, return URL
+     * Upload file to a specific subdirectory, return URL
      */
-    public String uploadFile(MultipartFile file) throws IOException {
+    public String uploadFile(MultipartFile file, String subDir) throws IOException {
         // Validate
         validateFile(file);
 
@@ -57,15 +57,25 @@ public class FileStorageService {
         String uniqueFilename = generateUniqueFilename(extension);
 
         // Save file
-        Path uploadPath = Paths.get(uploadDir);
+        Path uploadPath = Paths.get(subDir);
+        if (!Files.exists(uploadPath)) {
+            Files.createDirectories(uploadPath);
+        }
         Path filePath = uploadPath.resolve(uniqueFilename);
 
         Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
 
-        log.info("Uploaded file: {}", uniqueFilename);
+        log.info("Uploaded file to {}: {}", subDir, uniqueFilename);
 
         // Return URL
-        return baseUrl + "/" + uploadDir + "/" + uniqueFilename;
+        return baseUrl + "/" + subDir + "/" + uniqueFilename;
+    }
+
+    /**
+     * Upload file to default directory, return URL
+     */
+    public String uploadFile(MultipartFile file) throws IOException {
+        return uploadFile(file, uploadDir);
     }
 
     /**

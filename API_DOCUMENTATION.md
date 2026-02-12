@@ -2,6 +2,9 @@
 
 ## Overview
 
+TODO: add account, purchase logic , update statuses...
+
+
 This is a RESTful API for an e-commerce platform specializing in **virtual goods delivery**. The system manages products, categories, users, orders, and virtual goods (accounts/credentials).
 
 **Base URL**: `http://localhost:8080`
@@ -335,6 +338,63 @@ Deletes the category and its associated image file (if exists).
 
 **DELETE** `/api/v1/product/{id}`
 
+---
+
+## Product Image Endpoints
+
+### Get Product Images
+
+**GET** `/api/v1/product_img/{product_id}`
+
+Returns all images associated with a specific product.
+
+**Response** (200 OK):
+```json
+[
+  {
+    "id": 1,
+    "image_url": "http://localhost:8080/uploads/products/1739370000_abcd.jpg"
+  }
+]
+```
+
+### Upload Product Images (Batch)
+
+**POST** `/api/v1/product_img/{product_id}/uploads`
+
+**Content-Type**: `multipart/form-data`
+
+Upload multiple images for a product at once.
+
+**Request Parameters**:
+- `files` (required, file part): One or more image files.
+
+**Validation Rules**:
+- `product_id`: Must exist.
+- `files`: At least one file required.
+- Total images per product cannot exceed 5.
+
+**Example using cURL**:
+```bash
+curl -X POST http://localhost:8080/api/v1/product_img/1/uploads \
+  -F "files=@/path/to/image1.jpg" \
+  -F "files=@/path/to/image2.jpg"
+```
+
+**Response** (200 OK):
+```json
+[
+  {
+    "id": 1,
+    "image_url": "http://localhost:8080/uploads/products/1739370000_abcd.jpg"
+  },
+  {
+    "id": 2,
+    "image_url": "http://localhost:8080/uploads/products/1739370001_efgh.jpg"
+  }
+]
+```
+
 
 
 ---
@@ -467,6 +527,44 @@ Returns all orders for a specific user.
 
 ---
 
+## Order Item Endpoints
+
+### Create Order Item
+
+**POST** `/api/v1/order-item`
+
+**Request Body**:
+```json
+{
+  "orderId": 1,
+  "productId": 1,
+  "quantity": 2
+}
+```
+
+**Response** (200 OK):
+```json
+{
+  "id": 1,
+  "orderId": 1,
+  "productId": 1,
+  "productName": "Minecraft Premium Account",
+  "quantity": 2,
+  "unitPrice": 29.99,
+  "totalPrice": 59.98
+}
+```
+
+### Get Order Item by ID
+
+**GET** `/api/v1/order-item/{id}`
+
+### Get Items by Order ID
+
+**GET** `/api/v1/order-item/order/{orderId}`
+
+---
+
 ## Account Endpoints (Virtual Goods)
 
 Accounts represent virtual goods to be delivered to customers.
@@ -591,7 +689,8 @@ When status is changed to "SOLD", the `sold` timestamp is automatically set.
 
 1. Create a category: `POST /api/v1/category/add` (with optional image upload)
 2. Create a product with category ID: `POST /api/v1/product/add`
-3. Add virtual goods (accounts): `POST /api/v1/account` (multiple times)
+3. Upload product images: `POST /api/v1/product_img/{product_id}/uploads`
+4. Add virtual goods (accounts): `POST /api/v1/account` (multiple times)
 
 ### 2. Place an Order
 

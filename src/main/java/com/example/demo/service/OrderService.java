@@ -51,7 +51,7 @@ public interface OrderService {
      * @throws com.example.demo.exception.ResourceNotFoundException if order not found
      */
 
-    Order updateOrder(OrderRequestDTO dto);
+    Order updateOrderStatus(Long id, String status);
 
 
 

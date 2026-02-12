@@ -11,10 +11,17 @@ public class ResourceConfig implements WebMvcConfigurer {
     @Value("${app.upload.categories-dir}")
     private String categoriesDir;
 
+    @Value("${app.upload.products-dir}")
+    private String productsDir;
+
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry
                 .addResourceHandler("/uploads/categories/**")
                 .addResourceLocations("file:" + categoriesDir + "/");
+        registry
+                .addResourceHandler("/uploads/products/**")
+                .addResourceLocations("file:" + productsDir + "/");
+
     }
 }

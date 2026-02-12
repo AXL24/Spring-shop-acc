@@ -188,22 +188,19 @@ public class OrderServiceImpl implements OrderService {
         return orderRepository.findByUserId(userId);
     }
 
+
+//
     @Override
-    public Order updateOrder(OrderRequestDTO dto) {
-        return null;
+    @Transactional
+    public Order updateOrderStatus(Long id, String status) {
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + id));
+
+        order.setStatus(status);
+        order.setUpdated(Instant.now());
+
+        return orderRepository.save(order);
     }
-//
-//    @Override
-//    @Transactional
-//    public Order updateOrder(Long id, String status) {
-//        Order order = orderRepository.findById(id)
-//                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + id));
-//
-//        order.setStatus(status);
-//        order.setUpdated(Instant.now());
-//
-//        return orderRepository.save(order);
-//    }
 
 //    @Override
 //    @Transactional

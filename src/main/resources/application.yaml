@@ -1,6 +1,7 @@
 app:
   upload:
     categories-dir: uploads/categories
+    products-dir: uploads/products
     base-url: http://localhost:8080
 
 
