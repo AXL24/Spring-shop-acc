@@ -32,14 +32,10 @@ public interface AccountService {
      * @return page of account entities
      */
     Page<Account> getAllAccounts(Pageable pageable);
-<<<<<<< HEAD
-    
-=======
 
 
 
     List<Account> findSoldAccountsByUserId( Long userId);
->>>>>>> c5b3543 (Add ModelMapper configuration and enhance Product and User services with DTOs)
     /**
      * Get all accounts for a specific product.
      * 

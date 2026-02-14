@@ -1,9 +1,7 @@
 # E-commerce Backend API Documentation
 
 ## Overview
-
 TODO: add account, purchase logic , update statuses...
-
 
 This is a RESTful API for an e-commerce platform specializing in **virtual goods delivery**. The system manages products, categories, users, orders, and virtual goods (accounts/credentials).
 
@@ -440,7 +438,7 @@ Creates a new order with automatic total calculation and stock management.
   "userId": 1,
   "username": "johndoe",
   "totalAmount": 89.97,
-  "status": "PENDING",
+  "status": "COMPLETED",
   "customerNote": "Please deliver quickly",
   "orderItems": [
     {
@@ -470,9 +468,10 @@ Creates a new order with automatic total calculation and stock management.
 **Business Logic**:
 - Automatically generates unique order code
 - Calculates total amount from order items
-- Validates product stock availability
+- Validates product stock and **available virtual accounts**
+- Automatically links available accounts to order items (Virtual Goods Delivery)
 - Decrements product stock for each item
-- Sets initial status to "PENDING"
+- Sets status to "COMPLETED" upon successful link
 
 ### Get Order by ID
 
@@ -521,6 +520,24 @@ Returns all orders for a specific user.
 
 **Response** (200 OK): Updated order object
 
+### Update Order Items
+
+**PATCH** `/api/v1/order/{id}`
+
+Update the items of an order. Only allowed if the order has no status (draft/cart state).
+
+**Request Body**:
+```json
+[
+  {
+    "productId": 1,
+    "quantity": 3
+  }
+]
+```
+
+**Response** (200 OK): Updated order object
+
 ### Delete Order
 
 **DELETE** `/api/v1/order/{id}`
@@ -551,7 +568,21 @@ Returns all orders for a specific user.
   "productName": "Minecraft Premium Account",
   "quantity": 2,
   "unitPrice": 29.99,
-  "totalPrice": 59.98
+  "totalPrice": 59.98,
+  "accounts": [
+    {
+      "id": 101,
+      "username": "player1",
+      "password": "pass1",
+      "status": "SOLD"
+    },
+    {
+      "id": 102,
+      "username": "player2",
+      "password": "pass2",
+      "status": "SOLD"
+    }
+  ]
 }
 ```
 
@@ -701,12 +732,15 @@ When status is changed to "SOLD", the `sold` timestamp is automatically set.
    - Calculates total
    - Validates and decrements stock
 
-### 3. Process Order (Virtual Goods Delivery)
+### 3. Process Order (Automated Delivery)
 
-1. Get order details: `GET /api/v1/order/{id}`
-2. For each order item, get available accounts: `GET /api/v1/account/product/{productId}/available`
-3. Mark accounts as sold: `PUT /api/v1/account/{id}` with `status: "SOLD"`
-4. Update order status: `PATCH /api/v1/order/{id}/status` with `status: "DELIVERED"`
+1. User creates an order: `POST /api/v1/order`
+2. System automatically:
+   - Validates available accounts for each product
+   - Links account credentials to order items
+   - Marks accounts as `SOLD`
+   - Sets order status to `COMPLETED`
+3. User views order details to see credentials: `GET /api/v1/order/{id}`
 
 ---
 

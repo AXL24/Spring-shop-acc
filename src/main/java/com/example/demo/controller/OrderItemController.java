@@ -7,6 +7,8 @@ import com.example.demo.model.entity.OrderItem;
 import com.example.demo.service.OrderItemService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,8 +16,10 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("api/v1/order-item")
 @RequiredArgsConstructor
 public class OrderItemController {
+    @Autowired
     private final OrderItemService orderItemService;
-    private final org.modelmapper.ModelMapper modelMapper;
+    @Autowired
+    private final ModelMapper modelMapper;
 
     @PostMapping("")
     public ResponseEntity<OrderItemResponseDTO> createOrderItem(@Valid @RequestBody OrderItemRequestDTO dto) {

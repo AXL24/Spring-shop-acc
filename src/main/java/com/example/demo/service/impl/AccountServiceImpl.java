@@ -8,13 +8,9 @@ import com.example.demo.model.entity.Product;
 import com.example.demo.repository.mysql.AccountRepository;
 import com.example.demo.repository.mysql.ProductRepository;
 import com.example.demo.service.AccountService;
-<<<<<<< HEAD
-import org.springframework.beans.factory.annotation.Autowired;
-=======
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
->>>>>>> c5b3543 (Add ModelMapper configuration and enhance Product and User services with DTOs)
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -36,13 +32,8 @@ public class AccountServiceImpl implements AccountService {
     
     @Autowired
     private ProductRepository productRepository;
-
-<<<<<<< HEAD
     @Autowired
-    private org.modelmapper.ModelMapper modelMapper;
-=======
     private ModelMapper modelMapper;
->>>>>>> c5b3543 (Add ModelMapper configuration and enhance Product and User services with DTOs)
 
     @Override
     @Transactional
@@ -52,7 +43,8 @@ public class AccountServiceImpl implements AccountService {
         
         Account account = modelMapper.map(dto, Account.class);
         account.setProduct(product);
-        account.setStatus(dto.getStatus() != null ? dto.getStatus() : "AVAILABLE");
+//        account.setStatus(dto.getStatus() != null ? dto.getStatus() : "AVAILABLE");
+        account.setStatus("SOLD");
         account.setCreated(Instant.now());
         
         Account savedAccount = accountRepository.save(account);
@@ -71,14 +63,11 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-<<<<<<< HEAD
-=======
     public List<Account> findSoldAccountsByUserId(Long userId) {
         return accountRepository.findSoldAccountsByUserId(userId);
     }
 
     @Override
->>>>>>> c5b3543 (Add ModelMapper configuration and enhance Product and User services with DTOs)
     public List<Account> getAccountsByProduct(Long productId) {
         return accountRepository.findByProductId(productId);
     }

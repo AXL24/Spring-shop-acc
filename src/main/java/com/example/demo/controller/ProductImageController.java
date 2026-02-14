@@ -18,7 +18,7 @@ import java.util.List;
 @RequestMapping("/api/v1/product_img")
 public class ProductImageController {
 
-    @org.springframework.beans.factory.annotation.Autowired
+    @Autowired
     private ProductImageService productImageService;
 
     @GetMapping("/{product_id}")

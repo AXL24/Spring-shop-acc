@@ -5,10 +5,7 @@ import com.example.demo.dto.response.AccountResponseDTO;
 import com.example.demo.model.entity.Account;
 import com.example.demo.service.AccountService;
 import jakarta.validation.Valid;
-<<<<<<< HEAD
-=======
 import org.modelmapper.ModelMapper;
->>>>>>> c5b3543 (Add ModelMapper configuration and enhance Product and User services with DTOs)
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -31,11 +28,7 @@ public class AccountController {
     private AccountService accountService;
 
     @Autowired
-<<<<<<< HEAD
-    private org.modelmapper.ModelMapper modelMapper;
-=======
     private ModelMapper modelMapper;
->>>>>>> c5b3543 (Add ModelMapper configuration and enhance Product and User services with DTOs)
 
     /**
      * Create a new account (virtual goods).
@@ -62,8 +55,6 @@ public class AccountController {
         return ResponseEntity.ok(response);
     }
 
-<<<<<<< HEAD
-=======
 
 
     @GetMapping("/sold/user/{id}")
@@ -72,7 +63,6 @@ public class AccountController {
         return ResponseEntity.ok(accounts);
     }
 
->>>>>>> c5b3543 (Add ModelMapper configuration and enhance Product and User services with DTOs)
     /**
      * Get all accounts with pagination.
      * 

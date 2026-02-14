@@ -1,5 +1,6 @@
 package com.example.demo.dto.response;
 
+import com.example.demo.model.entity.Account;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -29,5 +30,8 @@ public class OrderItemResponseDTO {
     private BigDecimal unitPrice;
     @JsonProperty(value = "total_price")
     private BigDecimal totalPrice;
+
+    private java.util.List<AccountResponseDTO> accounts;
+
     private Instant delivered;
 }

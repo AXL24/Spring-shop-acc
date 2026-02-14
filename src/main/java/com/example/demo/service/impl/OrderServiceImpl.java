@@ -49,6 +49,9 @@ public class OrderServiceImpl implements OrderService {
     private ProductRepository productRepository;
 
     @Autowired
+    private com.example.demo.repository.mysql.AccountRepository accountRepository;
+
+    @Autowired
     private ModelMapper modelMapper;
 
     //TODO IMPLEMENT RESERVATION LOGIC FOR PENDING ORDERS
@@ -75,13 +78,19 @@ public class OrderServiceImpl implements OrderService {
         BigDecimal totalAmount = BigDecimal.ZERO;
         List<OrderItem> orderItems = new ArrayList<>();
         
+        // Map to keep track of accounts already "claimed" in this transaction
+        java.util.Map<Long, Integer> productToClaimedCount = new java.util.HashMap<>();
+
         for (OrderItemRequestDTO itemDto : dto.getOrderItems()) {
             Product product = productRepository.findById(itemDto.getProductId())
                     .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + itemDto.getProductId()));
             
-            // Check stock availability
-            if (product.getStock() < itemDto.getQuantity()) {
-                throw new IllegalArgumentException("Insufficient stock for product: " + product.getName());
+            // Check available accounts first
+            List<com.example.demo.model.entity.Account> availableAccounts = accountRepository.findByProductIdAndStatus(product.getId(), "AVAILABLE");
+            int alreadyClaimed = productToClaimedCount.getOrDefault(product.getId(), 0);
+            
+            if (availableAccounts.size() < itemDto.getQuantity() + alreadyClaimed) {
+                throw new IllegalArgumentException("Insufficient available accounts for product: " + product.getName());
             }
             
             OrderItem orderItem = new OrderItem();
@@ -95,6 +104,7 @@ public class OrderServiceImpl implements OrderService {
             totalAmount = totalAmount.add(itemTotal);
             
             orderItems.add(orderItem);
+            productToClaimedCount.put(product.getId(), alreadyClaimed + itemDto.getQuantity());
             
             // Update product stock
             product.setStock(product.getStock() - itemDto.getQuantity());
@@ -103,9 +113,35 @@ public class OrderServiceImpl implements OrderService {
         
         order.setTotalAmount(totalAmount);
         order.setOrderItems(orderItems);
+        order.setStatus("COMPLETED");
         
-        Order savedOrder = orderRepository.save(order);
-        OrderResponseDTO response =  modelMapper.map(savedOrder, OrderResponseDTO.class);
+        // Save order and items first to generate IDs
+        Order savedOrder = orderRepository.saveAndFlush(order);
+
+        // Reset claimed count for assignment phase
+        productToClaimedCount.clear();
+
+        // Now link accounts to saved items
+        for (OrderItem savedItem : savedOrder.getOrderItems()) {
+             List<com.example.demo.model.entity.Account> availableAccounts = 
+                 accountRepository.findByProductIdAndStatus(savedItem.getProduct().getId(), "AVAILABLE");
+             
+             int alreadyClaimed = productToClaimedCount.getOrDefault(savedItem.getProduct().getId(), 0);
+             List<com.example.demo.model.entity.Account> assignedAccounts = new ArrayList<>();
+             for (int i = 0; i < savedItem.getQuantity(); i++) {
+                 com.example.demo.model.entity.Account account = availableAccounts.get(alreadyClaimed + i);
+                 account.setOrderItem(savedItem);
+                 account.setStatus("SOLD");
+                 account.setSold(Instant.now());
+                 accountRepository.save(account);
+                 assignedAccounts.add(account);
+             }
+             savedItem.setAccounts(assignedAccounts);
+             productToClaimedCount.put(savedItem.getProduct().getId(), alreadyClaimed + savedItem.getQuantity());
+        }
+        
+        Order finalOrder = orderRepository.save(savedOrder);
+        OrderResponseDTO response =  modelMapper.map(finalOrder, OrderResponseDTO.class);
         response.setUsername(user.getUsername());
         return response;
     }
@@ -122,12 +158,22 @@ public class OrderServiceImpl implements OrderService {
         }
 
         // Handle items and stock
-        // 1. Restore stock for existing items
+        // 1. Restore stock and accounts for existing items
         if (order.getOrderItems() != null) {
             for (OrderItem existingItem : order.getOrderItems()) {
                 Product product = existingItem.getProduct();
                 product.setStock(product.getStock() + existingItem.getQuantity());
                 productRepository.save(product);
+                
+                // Restore accounts status
+                if (existingItem.getAccounts() != null) {
+                    for (com.example.demo.model.entity.Account acc : existingItem.getAccounts()) {
+                        acc.setOrderItem(null);
+                        acc.setStatus("AVAILABLE");
+                        acc.setSold(null);
+                        accountRepository.save(acc);
+                    }
+                }
             }
             order.getOrderItems().clear();
         } else {
@@ -138,12 +184,19 @@ public class OrderServiceImpl implements OrderService {
         BigDecimal totalAmount = BigDecimal.ZERO;
         List<OrderItem> newOrderItems = new ArrayList<>();
         
+        // Map to keep track of accounts already "claimed" in this transaction to avoid double assignment
+        java.util.Map<Long, Integer> productToClaimedCount = new java.util.HashMap<>();
+
         for (OrderItemRequestDTO itemDto : items) {
             Product product = productRepository.findById(itemDto.getProductId())
                     .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + itemDto.getProductId()));
             
-            if (product.getStock() < itemDto.getQuantity()) {
-                throw new IllegalArgumentException("Insufficient stock for product: " + product.getName());
+            // Check available accounts
+            List<com.example.demo.model.entity.Account> availableAccounts = accountRepository.findByProductIdAndStatus(product.getId(), "AVAILABLE");
+            int alreadyClaimed = productToClaimedCount.getOrDefault(product.getId(), 0);
+            
+            if (availableAccounts.size() < itemDto.getQuantity() + alreadyClaimed) {
+                throw new IllegalArgumentException("Insufficient available accounts for product: " + product.getName());
             }
             
             OrderItem orderItem = new OrderItem();
@@ -157,6 +210,7 @@ public class OrderServiceImpl implements OrderService {
             totalAmount = totalAmount.add(itemTotal);
             
             newOrderItems.add(orderItem);
+            productToClaimedCount.put(product.getId(), alreadyClaimed + itemDto.getQuantity());
             
             product.setStock(product.getStock() - itemDto.getQuantity());
             productRepository.save(product);
@@ -166,8 +220,35 @@ public class OrderServiceImpl implements OrderService {
         order.setTotalAmount(totalAmount);
         order.setUpdated(Instant.now());
         
-        Order savedOrder = orderRepository.save(order);
-        OrderResponseDTO response = modelMapper.map(savedOrder, OrderResponseDTO.class);
+        // Save order and items first
+        Order savedOrder = orderRepository.saveAndFlush(order);
+
+        // Reset claimed count for assignment phase
+        productToClaimedCount.clear();
+
+        // Link accounts to saved items
+        for (OrderItem savedItem : savedOrder.getOrderItems()) {
+            if (savedItem.getAccounts() == null || savedItem.getAccounts().isEmpty()) {
+                List<com.example.demo.model.entity.Account> availableAccounts = 
+                        accountRepository.findByProductIdAndStatus(savedItem.getProduct().getId(), "AVAILABLE");
+                
+                int alreadyClaimed = productToClaimedCount.getOrDefault(savedItem.getProduct().getId(), 0);
+                List<com.example.demo.model.entity.Account> assignedAccounts = new ArrayList<>();
+                for (int i = 0; i < savedItem.getQuantity(); i++) {
+                    com.example.demo.model.entity.Account account = availableAccounts.get(alreadyClaimed + i);
+                    account.setOrderItem(savedItem);
+                    account.setStatus("SOLD");
+                    account.setSold(Instant.now());
+                    accountRepository.save(account);
+                    assignedAccounts.add(account);
+                }
+                savedItem.setAccounts(assignedAccounts);
+                productToClaimedCount.put(savedItem.getProduct().getId(), alreadyClaimed + savedItem.getQuantity());
+            }
+        }
+        
+        Order finalOrder = orderRepository.save(savedOrder);
+        OrderResponseDTO response = modelMapper.map(finalOrder, OrderResponseDTO.class);
         response.setUsername(order.getUser().getUsername());
         return response;
     }
