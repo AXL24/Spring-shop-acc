@@ -5,6 +5,7 @@ import com.example.demo.dto.response.ProductResponseDTO;
 import com.example.demo.model.entity.Product;
 import com.example.demo.service.ProductService;
 import jakarta.validation.Valid;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -27,7 +28,7 @@ public class ProductController {
     private ProductService productService;
 
     @Autowired
-    private org.modelmapper.ModelMapper modelMapper;
+    private ModelMapper modelMapper;
 
     /**
      * Create a new product.

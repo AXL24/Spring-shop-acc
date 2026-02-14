@@ -5,6 +5,7 @@ import com.example.demo.dto.response.UserResponseDTO;
 import com.example.demo.model.entity.User;
 import com.example.demo.service.UserService;
 import jakarta.validation.Valid;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -25,7 +26,7 @@ public class UserController {
     private UserService userService;
 
     @Autowired
-    private org.modelmapper.ModelMapper modelMapper;
+    private ModelMapper modelMapper;
 
     /**
      * Create a new user.

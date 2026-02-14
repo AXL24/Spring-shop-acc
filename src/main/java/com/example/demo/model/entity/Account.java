@@ -38,6 +38,11 @@ public class Account {
     @Column(name = "sold")
     private Instant sold;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_item_id")
+    @JsonBackReference
+    private OrderItem orderItem;
+
     @ColumnDefault("CURRENT_TIMESTAMP")
     @Column(name = "created")
     private Instant created;

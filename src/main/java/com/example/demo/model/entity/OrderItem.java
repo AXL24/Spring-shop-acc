@@ -1,6 +1,7 @@
 package com.example.demo.model.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
@@ -49,9 +50,9 @@ public class OrderItem {
     @Column(name = "delivered")
     private Instant delivered;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "account_id", nullable = false)
-    private Account account;
+    @OneToMany(mappedBy = "orderItem", cascade = CascadeType.ALL)
+    @JsonManagedReference
+    private java.util.List<Account> accounts;
 
 
 
