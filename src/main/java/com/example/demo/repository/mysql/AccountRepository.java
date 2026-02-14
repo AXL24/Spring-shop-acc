@@ -2,6 +2,11 @@ package com.example.demo.repository.mysql;
 
 import com.example.demo.model.entity.Account;
 import org.springframework.data.jpa.repository.JpaRepository;
+<<<<<<< HEAD
+=======
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+>>>>>>> c5b3543 (Add ModelMapper configuration and enhance Product and User services with DTOs)
 
 import java.util.List;
 
@@ -19,7 +24,22 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
      * @return list of accounts for the product
      */
     List<Account> findByProductId(Long productId);
+<<<<<<< HEAD
     
+=======
+
+    @Query("""
+        SELECT a FROM Account a
+        JOIN OrderItem oi ON oi.account = a
+        JOIN Order o ON oi.order = o
+        WHERE o.user.id = :userId
+        AND a.status = 'SOLD'
+        AND o.status = 'COMPLETED'
+        
+    """)
+    List<Account> findSoldAccountsByUserId(@Param("userId") Long userId);
+
+>>>>>>> c5b3543 (Add ModelMapper configuration and enhance Product and User services with DTOs)
     /**
      * Find all accounts with a specific status.
      * 
@@ -37,4 +57,9 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
      * @return list of accounts matching both criteria
      */
     List<Account> findByProductIdAndStatus(Long productId, String status);
+<<<<<<< HEAD
+=======
+
+    Long id(Long id);
+>>>>>>> c5b3543 (Add ModelMapper configuration and enhance Product and User services with DTOs)
 }

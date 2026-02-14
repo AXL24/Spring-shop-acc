@@ -24,10 +24,19 @@ public interface OrderService {
      * @throws com.example.demo.exception.ResourceNotFoundException if order not found
      */
     Order getOrderById(Long id);
+<<<<<<< HEAD
     
     /**
      * Get all orders with pagination.
      * 
+=======
+
+
+
+    /**
+     * Get all orders with pagination.
+     *
+>>>>>>> c5b3543 (Add ModelMapper configuration and enhance Product and User services with DTOs)
      * @param pageable pagination information
      * @return page of order entities
      */
