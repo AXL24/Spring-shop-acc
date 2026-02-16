@@ -55,7 +55,7 @@ Create a new user account.
   "username": "johndoe",
   "email": "john@example.com",
   "password": "Password123",
-  "phoneNumber": "+1234567890",
+  "phone_number": "+1234567890",
   "role": "CUSTOMER"
 }
 ```
@@ -64,8 +64,8 @@ Create a new user account.
 - `username`: Required, 3-50 characters
 - `email`: Required, valid email format, max 100 characters
 - `password`: Required, min 8 characters, must contain at least 1 uppercase letter
-- `phoneNumber`: Optional, max 15 characters, digits and +-()\s only
-- `role`: Optional (default: CUSTOMER), values: CUSTOMER, ADMIN, SELLER
+- `phone_number`: Optional, max 15 characters, digits and +-()\s only
+- `role`: Optional (default: CUSTOMER), values: CUSTOMER, ADMIN
 
 **Response** (201 Created):
 ```json
@@ -73,7 +73,7 @@ Create a new user account.
   "id": 1,
   "username": "johndoe",
   "email": "john@example.com",
-  "phoneNumber": "+1234567890",
+  "phone_number": "+1234567890",
   "role": "CUSTOMER",
   "active": true,
   "created": "2026-02-06T14:30:00Z",
@@ -91,7 +91,7 @@ Create a new user account.
   "id": 1,
   "username": "johndoe",
   "email": "john@example.com",
-  "phoneNumber": "+1234567890",
+  "phone_number": "+1234567890",
   "role": "CUSTOMER",
   "active": true,
   "created": "2026-02-06T14:30:00Z",
@@ -115,7 +115,7 @@ Create a new user account.
       "id": 1,
       "username": "johndoe",
       "email": "john@example.com",
-      "phoneNumber": "+1234567890",
+      "phone_number": "+1234567890",
       "role": "CUSTOMER",
       "active": true,
       "created": "2026-02-06T14:30:00Z",
@@ -408,15 +408,15 @@ Creates a new order with automatic total calculation and stock management.
 **Request Body**:
 ```json
 {
-  "userId": 1,
-  "customerNote": "Please deliver quickly",
-  "orderItems": [
+  "user_id": 1,
+  "customer_note": "Please deliver quickly",
+  "order_items": [
     {
-      "productId": 1,
+      "product_id": 1,
       "quantity": 2
     },
     {
-      "productId": 2,
+      "product_id": 2,
       "quantity": 1
     }
   ]
@@ -424,39 +424,62 @@ Creates a new order with automatic total calculation and stock management.
 ```
 
 **Validation Rules**:
-- `userId`: Required, must exist
-- `orderItems`: Required, at least 1 item
-- `orderItems[].productId`: Required, must exist
-- `orderItems[].quantity`: Required, min 1
-- `customerNote`: Optional, max 1000 characters
+- `user_id`: Required, must exist
+- `order_items`: Required, at least 1 item
+- `order_items[].product_id`: Required, must exist
+- `order_items[].quantity`: Required, min 1
+- `customer_note`: Optional, max 1000 characters
 
 **Response** (201 Created):
 ```json
 {
   "id": 1,
-  "orderCode": "ORD-1738838400000-A1B2C3D4",
-  "userId": 1,
+  "order_code": "1738838400000.A1B2",
+  "user_id": 1,
   "username": "johndoe",
-  "totalAmount": 89.97,
+  "total_amount": 89.97,
   "status": "COMPLETED",
-  "customerNote": "Please deliver quickly",
-  "orderItems": [
+  "customer_note": null,
+  "order_items": [
     {
       "id": 1,
-      "productId": 1,
-      "productName": "Minecraft Premium Account",
+      "product_id": 1,
+      "product_name": "Minecraft Premium Account",
       "quantity": 2,
-      "unitPrice": 29.99,
-      "totalPrice": 59.98,
+      "unit_price": 29.99,
+      "total_price": 59.98,
+      "accounts": [
+        {
+          "id": 101,
+          "product_id": 1,
+          "product_name": "Minecraft Premium Account",
+          "username": "player1",
+          "password": "pass1",
+          "status": "SOLD",
+          "sold": "2026-02-06T14:30:00Z",
+          "created": "2026-02-06T14:00:00Z"
+        },
+        {
+          "id": 102,
+          "product_id": 1,
+          "product_name": "Minecraft Premium Account",
+          "username": "player2",
+          "password": "pass2",
+          "status": "SOLD",
+          "sold": "2026-02-06T14:30:00Z",
+          "created": "2026-02-06T14:00:00Z"
+        }
+      ],
       "delivered": null
     },
     {
       "id": 2,
-      "productId": 2,
-      "productName": "Spotify Premium 1 Year",
+      "product_id": 2,
+      "product_name": "Spotify Premium 1 Year",
       "quantity": 1,
-      "unitPrice": 29.99,
-      "totalPrice": 29.99,
+      "unit_price": 29.99,
+      "total_price": 29.99,
+      "accounts": [ ... ],
       "delivered": null
     }
   ],
@@ -492,13 +515,55 @@ Returns all orders for a specific user.
 [
   {
     "id": 1,
-    "orderCode": "ORD-1738838400000-A1B2C3D4",
-    "userId": 1,
+    "order_code": "1738838400000.A1B2",
+    "user_id": 1,
     "username": "johndoe",
-    "totalAmount": 89.97,
+    "total_amount": 89.97,
     "status": "DELIVERED",
-    "customerNote": "Please deliver quickly",
-    "orderItems": [...],
+    "customer_note": "Please deliver quickly",
+    "order_items": [
+      {
+        "id": 1,
+        "product_id": 1,
+        "product_name": "Minecraft Premium Account",
+        "quantity": 2,
+        "unit_price": 29.99,
+        "total_price": 59.98,
+        "accounts": [
+          {
+            "id": 101,
+            "product_id": 1,
+            "product_name": "Minecraft Premium Account",
+            "username": "player1",
+            "password": "pass1",
+            "status": "SOLD",
+            "sold": "2026-02-06T14:30:00Z",
+            "created": "2026-02-06T14:00:00Z"
+          },
+          {
+            "id": 102,
+            "product_id": 1,
+            "product_name": "Minecraft Premium Account",
+            "username": "player2",
+            "password": "pass2",
+            "status": "SOLD",
+            "sold": "2026-02-06T14:30:00Z",
+            "created": "2026-02-06T14:00:00Z"
+          }
+        ],
+        "delivered": null
+      },
+      {
+        "id": 2,
+        "product_id": 2,
+        "product_name": "Spotify Premium 1 Year",
+        "quantity": 1,
+        "unit_price": 29.99,
+        "total_price": 29.99,
+        "accounts": [ ... ],
+        "delivered": null
+      }
+    ],
     "created": "2026-02-06T14:30:00Z",
     "updated": "2026-02-06T14:31:00Z"
   }
@@ -530,7 +595,7 @@ Update the items of an order. Only allowed if the order has no status (draft/car
 ```json
 [
   {
-    "productId": 1,
+    "product_id": 1,
     "quantity": 3
   }
 ]
@@ -553,8 +618,8 @@ Update the items of an order. Only allowed if the order has no status (draft/car
 **Request Body**:
 ```json
 {
-  "orderId": 1,
-  "productId": 1,
+  "order_id": 1,
+  "product_id": 1,
   "quantity": 2
 }
 ```
@@ -563,26 +628,34 @@ Update the items of an order. Only allowed if the order has no status (draft/car
 ```json
 {
   "id": 1,
-  "orderId": 1,
-  "productId": 1,
-  "productName": "Minecraft Premium Account",
+  "product_id": 1,
+  "product_name": "Minecraft Premium Account",
   "quantity": 2,
-  "unitPrice": 29.99,
-  "totalPrice": 59.98,
+  "unit_price": 29.99,
+  "total_price": 59.98,
   "accounts": [
     {
       "id": 101,
+      "product_id": 1,
+      "product_name": "Minecraft Premium Account",
       "username": "player1",
       "password": "pass1",
-      "status": "SOLD"
+      "status": "SOLD",
+      "sold": "2026-02-06T14:30:00Z",
+      "created": "2026-02-06T14:00:00Z"
     },
     {
       "id": 102,
+      "product_id": 1,
+      "product_name": "Minecraft Premium Account",
       "username": "player2",
       "password": "pass2",
-      "status": "SOLD"
+      "status": "SOLD",
+      "sold": "2026-02-06T14:30:00Z",
+      "created": "2026-02-06T14:00:00Z"
     }
-  ]
+  ],
+  "delivered": null
 }
 ```
 
@@ -607,7 +680,7 @@ Accounts represent virtual goods to be delivered to customers.
 **Request Body**:
 ```json
 {
-  "productId": 1,
+  "product_id": 1,
   "username": "player123",
   "password": "SecurePass456",
   "status": "AVAILABLE"
@@ -615,7 +688,7 @@ Accounts represent virtual goods to be delivered to customers.
 ```
 
 **Validation Rules**:
-- `productId`: Required, must exist
+- `product_id`: Required, must exist
 - `username`: Required, max 500 characters
 - `password`: Required, max 500 characters
 - `status`: Optional (default: AVAILABLE), values: AVAILABLE, SOLD, CONTACT
@@ -624,8 +697,8 @@ Accounts represent virtual goods to be delivered to customers.
 ```json
 {
   "id": 1,
-  "productId": 1,
-  "productName": "Minecraft Premium Account",
+  "product_id": 1,
+  "product_name": "Minecraft Premium Account",
   "username": "player123",
   "password": "SecurePass456",
   "status": "AVAILABLE",
@@ -638,19 +711,39 @@ Accounts represent virtual goods to be delivered to customers.
 
 **GET** `/api/v1/account/{id}`
 
+### Get Sold Accounts by User ID
+
+**GET** `/api/v1/account/sold/user/{id}`
+
+Returns a list of accounts (credentials) bought by a specific user.
+
+**Response** (200 OK):
+```json
+[
+  {
+    "id": 1,
+    "username": "player123",
+    "password": "SecurePass456",
+    "status": "SOLD",
+    "sold": "2026-02-06T14:30:00Z",
+    "created": "2026-02-06T14:00:00Z"
+  }
+]
+```
+
 ### Get All Accounts
 
 **GET** `/api/v1/account/getAll?page=0&size=10`
 
 ### Get Accounts by Product
 
-**GET** `/api/v1/account/product/{productId}`
+**GET** `/api/v1/account/product/{product_id}`
 
 Returns all accounts for a specific product.
 
 ### Get Available Accounts by Product
 
-**GET** `/api/v1/account/product/{productId}/available`
+**GET** `/api/v1/account/product/{product_id}/available`
 
 Returns only accounts with status="AVAILABLE" for a specific product.
 
@@ -659,8 +752,8 @@ Returns only accounts with status="AVAILABLE" for a specific product.
 [
   {
     "id": 1,
-    "productId": 1,
-    "productName": "Minecraft Premium Account",
+    "product_id": 1,
+    "product_name": "Minecraft Premium Account",
     "username": "player123",
     "password": "SecurePass456",
     "status": "AVAILABLE",
@@ -730,7 +823,8 @@ When status is changed to "SOLD", the `sold` timestamp is automatically set.
 3. System automatically:
    - Generates order code
    - Calculates total
-   - Validates and decrements stock
+   - Validates stock and available accounts
+   - Automatically links accounts and decrements stock
 
 ### 3. Process Order (Automated Delivery)
 

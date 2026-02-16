@@ -53,6 +53,9 @@ public class  OrderController {
     public ResponseEntity<OrderResponseDTO> getOrderById(@PathVariable("id") Long id) {
         Order order = orderService.getOrderById(id);
         OrderResponseDTO response = modelMapper.map(order, OrderResponseDTO.class);
+        response.setUserId(order.getUser().getId());
+        response.setUsername(order.getUser().getUsername());
+        response.setCustomerNote(order.getCustomerNote());
         return ResponseEntity.ok(response);
     }
 
