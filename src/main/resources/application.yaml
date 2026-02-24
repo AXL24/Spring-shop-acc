@@ -27,3 +27,8 @@ spring:
         use_sql_comments: true
         dialect: org.hibernate.dialect.MySQLDialect
     database-platform: org.hibernate.dialect.MySQLDialect
+
+jwt:
+  expiration: 2592000 #30 days = 30 * 24 * 60 * 60
+  expiration-refresh-token: 5184000 #60 days = 60 * 24 * 60 * 60
+  secretKey: SAjbshubsduhbsdkjlasbdfijfb8ZBDs8ddbdjbsdjbj

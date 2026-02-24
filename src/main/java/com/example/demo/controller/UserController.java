@@ -3,7 +3,9 @@ package com.example.demo.controller;
 import com.example.demo.dto.request.UserRequestDTO;
 import com.example.demo.dto.response.UserResponseDTO;
 import com.example.demo.model.entity.User;
+import com.example.demo.model.entity.UserLoginDTO;
 import com.example.demo.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +41,18 @@ public class UserController {
         UserResponseDTO response = userService.createUser(dto);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
+
+    @GetMapping("/")
+    public String greet(HttpServletRequest request) {
+        return "Hello World!" + request.getSession().getId();
+    }
+
+    @PostMapping("/auth/login")
+    public String login(@Valid @RequestBody UserLoginDTO user) {
+//        return "Hello World!" + userService.findUserByEmail(user.getEmail());
+        return userService.verify(user);
+    }
+
 
     /**
      * Get a user by ID.

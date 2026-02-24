@@ -3,8 +3,11 @@ package com.example.demo.service;
 import com.example.demo.dto.request.UserRequestDTO;
 import com.example.demo.dto.response.UserResponseDTO;
 import com.example.demo.model.entity.User;
+import com.example.demo.model.entity.UserLoginDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+
+import java.util.Optional;
 
 /**
  * Service interface for User entity operations.
@@ -40,6 +43,8 @@ public interface UserService {
      * @throws com.example.demo.exception.ResourceNotFoundException if user not found
      */
     void softDeleteUser(Long id);
+
+    Optional<User> findUserByEmail(String email);
     
     /**
      * Hard delete a user (remove from database).
@@ -48,4 +53,6 @@ public interface UserService {
      * @throws com.example.demo.exception.ResourceNotFoundException if user not found
      */
     void deleteUser(Long id);
+
+    String verify(UserLoginDTO user);
 }
