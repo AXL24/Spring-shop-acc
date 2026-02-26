@@ -7,6 +7,7 @@ import com.example.demo.model.entity.Order;
 import com.example.demo.service.OrderService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -38,6 +39,7 @@ public class  OrderController {
      * @return the created order
      */
     @PostMapping
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_CUSTOMER')")
     public ResponseEntity<OrderResponseDTO> createOrder(@Valid @RequestBody OrderRequestDTO dto) {
         OrderResponseDTO response = orderService.createOrder(dto);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
@@ -67,6 +69,7 @@ public class  OrderController {
      * @return page of orders
      */
     @GetMapping("/getAll")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<Page<OrderResponseDTO>> getAllOrders(
             @RequestParam(value = "page", defaultValue = "0") int page,
             @RequestParam(value = "size", defaultValue = "10") int size) {
@@ -83,6 +86,7 @@ public class  OrderController {
      * @return list of user's orders
      */
     @GetMapping("/user/{userId}")
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_CUSTOMER')")
     public ResponseEntity<List<OrderResponseDTO>> getUserOrders(@PathVariable("userId") Long userId) {
         List<Order> orders = orderService.getUserOrders(userId);
         List<OrderResponseDTO> response = orders.stream()
@@ -99,6 +103,7 @@ public class  OrderController {
      * @return the updated order
      */
     @PatchMapping("/{id}/status")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<OrderResponseDTO> updateOrderStatus(
             @PathVariable("id") Long id,
             @RequestBody Map<String, String> statusUpdate) {
@@ -120,6 +125,7 @@ public class  OrderController {
      * @return the updated order
      */
     @PatchMapping("/{id}")
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_CUSTOMER')")
     public ResponseEntity<OrderResponseDTO> updateOrderDetail(
             @PathVariable("id") Long id,
             @Valid @RequestBody List<OrderItemRequestDTO> items) {
@@ -134,6 +140,7 @@ public class  OrderController {
      * @return no content
      */
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<Void> deleteOrder(@PathVariable("id") Long id) {
         orderService.deleteOrder(id);
         return ResponseEntity.noContent().build();

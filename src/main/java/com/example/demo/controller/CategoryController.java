@@ -7,6 +7,7 @@ import com.example.demo.service.CategoryService;
 import com.example.demo.service.impl.FileStorageService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -46,6 +47,7 @@ public class CategoryController {
      * @return the created category
      */
     @PostMapping(value = "/add", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<CategoryResponseDTO> addCategory(
             @Valid @RequestPart("category") CategoryRequestDTO dto,
             @RequestPart(value = "image", required = false) MultipartFile image
@@ -117,6 +119,7 @@ public class CategoryController {
      * @return the updated category
      */
     @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<CategoryResponseDTO> updateCategory(
             @PathVariable("id") Long id,
             @Valid @RequestPart("category") CategoryRequestDTO dto,
@@ -160,6 +163,7 @@ public class CategoryController {
      * @return no content
      */
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<Void> deleteCategory(@PathVariable("id") Long id) {
         // Get category to delete associated image
         Category category = categoryService.findCategoryById(id);

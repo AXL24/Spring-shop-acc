@@ -6,6 +6,7 @@ import com.example.demo.model.entity.Product;
 import com.example.demo.service.ProductService;
 import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -37,6 +38,7 @@ public class ProductController {
      * @return the created product
      */
     @PostMapping("/add")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<ProductResponseDTO> addProduct(@Valid @RequestBody ProductRequestDTO dto) {
         ProductResponseDTO response = productService.createProduct(dto);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
@@ -80,6 +82,7 @@ public class ProductController {
      * @return the updated product
      */
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<ProductResponseDTO> updateProduct(
             @PathVariable("id") Long id,
             @Valid @RequestBody ProductRequestDTO dto) {
@@ -94,6 +97,7 @@ public class ProductController {
      * @return no content
      */
     @PatchMapping("/{id}/deactivate")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<Void> deactivateProduct(@PathVariable("id") Long id) {
         productService.softDeleteProduct(id);
         return ResponseEntity.noContent().build();
@@ -106,6 +110,7 @@ public class ProductController {
      * @return no content
      */
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<Void> deleteProduct(@PathVariable("id") Long id) {
         productService.deleteProduct(id);
         return ResponseEntity.noContent().build();

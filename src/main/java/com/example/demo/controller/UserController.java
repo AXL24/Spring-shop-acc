@@ -14,6 +14,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -61,6 +62,7 @@ public class UserController {
      * @return the user
      */
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_CUSTOMER')")
     public ResponseEntity<UserResponseDTO> getUserById(@PathVariable("id") Long id) {
         User user = userService.getUserById(id);
         UserResponseDTO response = modelMapper.map(user, UserResponseDTO.class);
@@ -75,6 +77,7 @@ public class UserController {
      * @return page of users
      */
     @GetMapping("/getAll")
+    @PreAuthorize("hasRole('ROLE_ADMIN')") // Only admins can access this endpoint
     public ResponseEntity<Page<UserResponseDTO>> getAllUsers(
             @RequestParam(value = "page", defaultValue = "0") int page,
             @RequestParam(value = "size", defaultValue = "10") int size) {
@@ -92,6 +95,7 @@ public class UserController {
      * @return the updated user
      */
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<UserResponseDTO> updateUser(
             @PathVariable("id") Long id,
             @Valid @RequestBody UserRequestDTO dto) {
@@ -106,6 +110,7 @@ public class UserController {
      * @return no content
      */
     @PatchMapping("/{id}/deactivate")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<Void> deactivateUser(@PathVariable("id") Long id) {
         userService.softDeleteUser(id);
         return ResponseEntity.noContent().build();
@@ -118,6 +123,7 @@ public class UserController {
      * @return no content
      */
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<Void> deleteUser(@PathVariable("id") Long id) {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();

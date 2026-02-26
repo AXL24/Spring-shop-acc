@@ -41,6 +41,7 @@ public class JwtTokenUtils {
             String token = Jwts.builder()
                     .setClaims(claims)
                     .setSubject(username.getEmail())
+
                     .issuedAt(new Date(System.currentTimeMillis()))
                     .setExpiration(new Date(System.currentTimeMillis() + expiration*1000L))
                     .signWith(getSignInKey(), SignatureAlgorithm.HS256)

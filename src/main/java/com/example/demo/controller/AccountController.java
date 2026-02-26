@@ -6,6 +6,7 @@ import com.example.demo.model.entity.Account;
 import com.example.demo.service.AccountService;
 import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -37,6 +38,7 @@ public class AccountController {
      * @return the created account
      */
     @PostMapping
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<AccountResponseDTO> createAccount(@Valid @RequestBody AccountRequestDTO dto) {
         AccountResponseDTO response = accountService.createAccount(dto);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
@@ -49,6 +51,7 @@ public class AccountController {
      * @return the account
      */
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<AccountResponseDTO> getAccountById(@PathVariable("id") Long id) {
         Account account = accountService.getAccountById(id);
         AccountResponseDTO response = modelMapper.map(account, AccountResponseDTO.class);
@@ -58,6 +61,7 @@ public class AccountController {
 
 
     @GetMapping("/sold/user/{id}")
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_CUSTOMER')")
     public ResponseEntity<?> getSoldAccountByUserId(@PathVariable("id") Long id) {
         List<Account> accounts = accountService.findSoldAccountsByUserId(id);
         return ResponseEntity.ok(accounts);
@@ -71,6 +75,7 @@ public class AccountController {
      * @return page of accounts
      */
     @GetMapping("/getAll")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<Page<AccountResponseDTO>> getAllAccounts(
             @RequestParam(value = "page", defaultValue = "0") int page,
             @RequestParam(value = "size", defaultValue = "10") int size) {
@@ -87,6 +92,7 @@ public class AccountController {
      * @return list of accounts for the product
      */
     @GetMapping("/product/{productId}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<List<AccountResponseDTO>> getAccountsByProduct(@PathVariable("productId") Long productId) {
         List<Account> accounts = accountService.getAccountsByProduct(productId);
         List<AccountResponseDTO> response = accounts.stream()
@@ -102,6 +108,7 @@ public class AccountController {
      * @return list of available accounts
      */
     @GetMapping("/product/{productId}/available")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<List<AccountResponseDTO>> getAvailableAccountsByProduct(@PathVariable("productId") Long productId) {
         List<Account> accounts = accountService.getAvailableAccountsByProduct(productId);
         List<AccountResponseDTO> response = accounts.stream()
@@ -118,6 +125,7 @@ public class AccountController {
      * @return the updated account
      */
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<AccountResponseDTO> updateAccount(
             @PathVariable("id") Long id,
             @Valid @RequestBody AccountRequestDTO dto) {
@@ -132,6 +140,7 @@ public class AccountController {
      * @return no content
      */
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<Void> deleteAccount(@PathVariable("id") Long id) {
         accountService.deleteAccount(id);
         return ResponseEntity.noContent().build();

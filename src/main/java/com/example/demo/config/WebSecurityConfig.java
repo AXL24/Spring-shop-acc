@@ -25,12 +25,17 @@ public class WebSecurityConfig {
         http.authorizeHttpRequests(
                         requests -> requests
                                 .requestMatchers("/api/v1/user/auth/login", "/api/v1/user/add").permitAll()
+                                // Public read endpoints (no auth required)
+                                .requestMatchers(org.springframework.http.HttpMethod.GET,
+                                        "/api/v1/product/findById/**",
+                                        "/api/v1/product/getAll",
+                                        "/api/v1/category/{id}",
+                                        "/api/v1/category/getAll",
+                                        "/api/v1/product_img/**",
+                                        "/api/v1/order/{id}"
+                                ).permitAll()
                                 .anyRequest()
                                 .authenticated());
-//        http.formLogin(
-//                formLogin -> formLogin
-//                        .loginPage("/api/v1/user/login").permitAll()
-//        );
         http.httpBasic(Customizer.withDefaults());
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();

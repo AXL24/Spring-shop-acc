@@ -4,6 +4,7 @@ package com.example.demo.controller;
 import com.example.demo.model.entity.ProductImage;
 import com.example.demo.service.ProductImageService;
 import com.example.demo.service.ProductService;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +28,7 @@ public class ProductImageController {
     }
 
     @PostMapping(value = "/{product_id}/uploads", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<List<ProductImage>> uploadProductImages(
             @PathVariable("product_id") Long productId,
             @RequestPart("files") List<MultipartFile> files) {

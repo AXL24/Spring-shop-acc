@@ -1,7 +1,6 @@
 # E-commerce Backend API Documentation
 
 ## Overview
-TODO: add account, purchase logic , update statuses...
 
 This is a RESTful API for an e-commerce platform specializing in **virtual goods delivery**. The system manages products, categories, users, orders, and virtual goods (accounts/credentials).
 
@@ -13,7 +12,34 @@ This is a RESTful API for an e-commerce platform specializing in **virtual goods
 
 ## Authentication
 
-> **Note**: Authentication endpoints are not yet implemented. All endpoints are currently public.
+The API uses **JWT (JSON Web Token)** Bearer token authentication.
+
+### How It Works
+
+1. Register a user via `POST /api/v1/user/add` (public)
+2. Login via `POST /api/v1/user/auth/login` to receive a JWT token
+3. Include the token in subsequent requests via the `Authorization` header
+
+### Authorization Header
+
+```
+Authorization: Bearer <your_jwt_token>
+```
+
+### Public Endpoints (No Token Required)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/v1/user/add` | Register a new user |
+| POST | `/api/v1/user/auth/login` | Login and get JWT token |
+
+All other endpoints require a valid JWT token.
+
+### Token Details
+
+- **Algorithm**: HS256
+- **Expiration**: 30 days
+- **Subject**: User's email address
 
 ---
 
@@ -36,6 +62,8 @@ All errors follow a consistent format:
 - `201 Created` - Successful POST requests
 - `204 No Content` - Successful DELETE requests
 - `400 Bad Request` - Validation errors or invalid input
+- `401 Unauthorized` - Missing or invalid JWT token
+- `403 Forbidden` - Insufficient permissions
 - `404 Not Found` - Resource not found
 - `500 Internal Server Error` - Server errors
 
@@ -43,9 +71,39 @@ All errors follow a consistent format:
 
 ## User Endpoints
 
+### Login
+
+**POST** `/api/v1/user/auth/login` 🔓 *Public*
+
+Authenticate a user and receive a JWT token.
+
+**Request Body**:
+```json
+{
+  "email": "john@example.com",
+  "password_hash": "Password123"
+}
+```
+
+**Validation Rules**:
+- `email`: Required
+- `password_hash`: Required (this is the JSON field name for the password)
+
+**Response** (200 OK):
+```
+eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJqb2huQGV4YW1wbGUuY29tIiwiaWF0IjoxNzA5...
+```
+
+> **Note**: The response is a plain JWT token string (not JSON). Use this token in the `Authorization: Bearer <token>` header for all protected endpoints.
+
+**Error Responses**:
+- `404 Not Found` - User not found with the given email
+- `404 Not Found` - User is locked (deactivated)
+- `401 Unauthorized` - Invalid password
+
 ### Create User
 
-**POST** `/api/v1/user/add`
+**POST** `/api/v1/user/add` 🔓 *Public*
 
 Create a new user account.
 
@@ -83,7 +141,7 @@ Create a new user account.
 
 ### Get User by ID
 
-**GET** `/api/v1/user/{id}`
+**GET** `/api/v1/user/{id}` 🔒 *Requires Token*
 
 **Response** (200 OK):
 ```json
@@ -101,7 +159,7 @@ Create a new user account.
 
 ### Get All Users
 
-**GET** `/api/v1/user/getAll?page=0&size=10`
+**GET** `/api/v1/user/getAll?page=0&size=10` 🔒 *Requires Token*
 
 **Query Parameters**:
 - `page`: Page number (default: 0)
@@ -131,7 +189,7 @@ Create a new user account.
 
 ### Update User
 
-**PUT** `/api/v1/user/{id}`
+**PUT** `/api/v1/user/{id}` 🔒 *Requires Token*
 
 **Request Body**: Same as Create User
 
@@ -139,7 +197,7 @@ Create a new user account.
 
 ### Deactivate User (Soft Delete)
 
-**PATCH** `/api/v1/user/{id}/deactivate`
+**PATCH** `/api/v1/user/{id}/deactivate` 🔒 *Requires Token*
 
 Sets `active=false` without removing from database.
 
@@ -147,7 +205,7 @@ Sets `active=false` without removing from database.
 
 ### Delete User (Hard Delete)
 
-**DELETE** `/api/v1/user/{id}`
+**DELETE** `/api/v1/user/{id}` 🔒 *Requires Token*
 
 Permanently removes user from database.
 
@@ -818,9 +876,10 @@ When status is changed to "SOLD", the `sold` timestamp is automatically set.
 
 ### 2. Place an Order
 
-1. Browse products: `GET /api/v1/product/getAll`
-2. Create order with items: `POST /api/v1/order`
-3. System automatically:
+1. Login: `POST /api/v1/user/auth/login` → get JWT token
+2. Browse products: `GET /api/v1/product/getAll` (with `Authorization: Bearer <token>`)
+3. Create order with items: `POST /api/v1/order`
+4. System automatically:
    - Generates order code
    - Calculates total
    - Validates stock and available accounts
@@ -850,7 +909,8 @@ When status is changed to "SOLD", the `sold` timestamp is automatically set.
 
 ## Future Enhancements
 
-- JWT authentication and authorization
+- Role-based authorization (ADMIN vs CUSTOMER endpoint restrictions)
+- Refresh token support (token rotation)
 - Order item delivery tracking (mark individual items as delivered)
 - QR code generation for virtual goods
 - MongoDB integration for product reviews
